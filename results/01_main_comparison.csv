@@ -1,0 +1,5 @@
+strategy,median_experiments,mean_experiments,success_rate_pct,saving_vs_historical_pct
+Historical protocol (2006),61.0,61.0,100.0,0.0
+Adaptive design (info gain),11.0,10.25,100.0,82.0
+Adaptive + literature prior,6.0,6.25,100.0,90.2
+Random pools + Bayes [ablation],49.0,47.65,80.0,19.7

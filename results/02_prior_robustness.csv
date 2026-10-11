@@ -1,0 +1,5 @@
+prior_quality,true_factors_dropped,median_experiments,success_rate_pct
+Prior contains all four true factors,0,6.0,100.0
+Prior drops one true factor,1,8.0,100.0
+Prior drops two true factors,2,10.0,100.0
+Prior drops three true factors,3,11.5,92.9

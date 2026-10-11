@@ -1,0 +1,65 @@
+cff-version: 1.2.0
+title: >-
+  yamanaka-replay: adaptive experimental design recovers the Yamanaka factors
+  in an order of magnitude fewer experiments
+message: If you use this software or its results, please cite it.
+type: software
+authors:
+  - given-names: Mashal
+    family-names: Alkhalifah
+    name-particle: Saleh
+    affiliation: >-
+      Institute of Smart Cities, King Abdulaziz City for Science and
+      Technology (KACST), Riyadh, Saudi Arabia
+    email: mkhalifah@kacst.gov.sa
+repository-code: https://github.com/OWNER/yamanaka-replay
+abstract: >-
+  An in-silico replay of the 2006 discovery of the Yamanaka reprogramming
+  factors under its original fitness function -- the colony count surviving
+  Fbx15/G418 selection -- measuring cost in wet-lab experiments rather than
+  compute. Adaptive Bayesian experimental design recovers the four-factor
+  recipe in a median of 6-11 experiments against 61 for the historical
+  leave-one-out protocol. An ablation shows the saving comes from informative
+  experiment selection rather than from Bayesian inference alone. Two
+  structural failure modes are characterised: absence of graded synergy, and
+  misspecified recipe cardinality, the latter failing silently at 0 percent
+  success. The oracle is a simulator calibrated to published figures; no
+  biological claim is made.
+keywords:
+  - adaptive experimental design
+  - Bayesian optimal experimental design
+  - combinatorial search
+  - cellular reprogramming
+  - induced pluripotent stem cells
+  - group testing
+license: MIT
+version: 1.0.0
+date-released: "2026-10-11"
+references:
+  - type: article
+    authors:
+      - family-names: Takahashi
+        given-names: Kazutoshi
+      - family-names: Yamanaka
+        given-names: Shinya
+    title: >-
+      Induction of pluripotent stem cells from mouse embryonic and adult
+      fibroblast cultures by defined factors
+    journal: Cell
+    volume: 126
+    issue: 4
+    year: 2006
+    doi: 10.1016/j.cell.2006.07.024
+  - type: article
+    authors:
+      - family-names: Okita
+        given-names: Keisuke
+      - family-names: Ichisaka
+        given-names: Tomoko
+      - family-names: Yamanaka
+        given-names: Shinya
+    title: Generation of germline-competent induced pluripotent stem cells
+    journal: Nature
+    volume: 448
+    year: 2007
+    doi: 10.1038/nature05934

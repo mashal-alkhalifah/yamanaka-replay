@@ -1,0 +1,7 @@
+case,error_kind,median_experiments,success_rate_pct
+Oracle matches the designer's model,calibration,10.5,100.0
+Pool-size penalty 3x harsher,calibration,11.5,100.0
+Triplet effect stronger than assumed,calibration,13.0,78.6
+Overall efficiency 3x lower,calibration,17.5,42.9
+Triplets have no effect at all,structural,24.5,42.9
+"Truth is five factors, not four",structural,26.0,0.0

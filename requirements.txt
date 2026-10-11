@@ -1,0 +1,3 @@
+# The entire study runs on numpy alone.
+# Tested with numpy 2.5.3 on Python 3.13; any numpy >= 1.22 should work.
+numpy>=1.22
