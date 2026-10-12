@@ -24,7 +24,7 @@ from .inference import (
 )
 from .strategies import adaptive_design, historical_protocol
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "ColonyOracle",

@@ -1,0 +1,477 @@
+#!/usr/bin/env python3
+"""
+Analysis of the large-scale campaign (experiments 05-09).
+
+Run everything, or one section at a time:
+
+    python analysis/analyze.py            # all available sections
+    python analysis/analyze.py 05 07      # just those
+
+Each section reads its per-run CSV from ``results/`` and prints a report.
+Nothing here re-runs a simulation, so the statistics can be revised without
+spending another CPU-hour.
+"""
+
+from __future__ import annotations
+
+import pathlib
+import sys
+
+import numpy as np
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+from stats import (  # noqa: E402
+    bootstrap_ci,
+    describe,
+    load,
+    loglog_slope,
+    logistic_threshold,
+    mcnemar_exact,
+    paired_permutation_test,
+    where,
+    wilson_ci,
+)
+
+RESULTS = pathlib.Path(__file__).resolve().parents[1] / "results"
+LABELS = {
+    "historical": "Historical protocol (2006)",
+    "adaptive": "Adaptive design (info gain)",
+    "informed": "Adaptive + literature prior",
+    "random": "Random pools + Bayes [ablation]",
+}
+
+
+def rule(title: str) -> None:
+    print(f"\n{'=' * 78}\n  {title}\n{'=' * 78}")
+
+
+def pct(x: float) -> str:
+    return f"{100 * x:.1f}%"
+
+
+# ------------------------------------------------------------------ exp 05
+
+
+def section_05() -> None:
+    cols = load("05_scale_main.csv")
+    rule("Experiment 5 -- main comparison, 300 paired replicates")
+
+    base = None
+    print(f"  {'strategy':<32}{'median':>7}{'95% CI':>11}{'mean':>7}"
+          f"{'IQR':>9}{'p90':>6}{'max':>6}   {'success (95% CI)':<24}")
+    print("  " + "-" * 96)
+    summaries = {}
+    for key in ("historical", "adaptive", "informed", "random"):
+        mask = where(cols, strategy=key)
+        exp = cols["n_experiments"][mask]
+        ok = cols["correct"][mask]
+        d = describe(exp)
+        lo, hi = bootstrap_ci(exp, np.median)
+        s_lo, s_hi = wilson_ci(int(ok.sum()), int(ok.size))
+        summaries[key] = {"exp": exp, "ok": ok, **d}
+        if key == "historical":
+            base = d["median"]
+        print(
+            f"  {LABELS[key]:<32}{d['median']:>7.0f}"
+            f"{f'[{lo:.0f},{hi:.0f}]':>11}{d['mean']:>7.1f}"
+            f"{f'{d_q(d)}':>9}{d['p90']:>6.0f}{d['max']:>6.0f}   "
+            f"{f'{pct(ok.mean())} [{pct(s_lo)}, {pct(s_hi)}]':<24}"
+        )
+
+    print(f"\n  Saving vs the 2006 protocol (median {base:.0f} experiments):")
+    for key in ("adaptive", "informed", "random"):
+        med = summaries[key]["median"]
+        print(f"    {LABELS[key]:<32}{100 * (1 - med / base):>6.0f}%"
+              f"   ({base / med:.1f}x fewer experiments)")
+
+    rule("Paired tests -- same hidden recipe, same noise seed, different strategy")
+    pairs = (
+        ("adaptive", "random", "is informative pool choice doing the work?"),
+        ("informed", "adaptive", "does the literature prior add anything?"),
+        ("adaptive", "historical", "vs the historical protocol"),
+    )
+    for a, b, question in pairs:
+        ea, eb = summaries[a]["exp"], summaries[b]["exp"]
+        diff, p = paired_permutation_test(ea, eb)
+        wins = int((ea < eb).sum())
+        ties = int((ea == eb).sum())
+        print(f"\n  {LABELS[a]} vs {LABELS[b]}")
+        print(f"    {question}")
+        print(f"    mean difference {diff:+.1f} experiments   permutation p = {fmt_p(p)}")
+        print(f"    cheaper in {wins}/{ea.size} runs, tied in {ties}")
+        oa, ob = summaries[a]["ok"].astype(bool), summaries[b]["ok"].astype(bool)
+        both = int((oa & ob).sum())
+        only_a = int((oa & ~ob).sum())
+        only_b = int((~oa & ob).sum())
+        neither = int((~oa & ~ob).sum())
+        if only_a or only_b:
+            p_mc = mcnemar_exact(both, only_a, only_b, neither)
+            print(f"    accuracy: {a} only {only_a}, {b} only {only_b}"
+                  f"   McNemar p = {fmt_p(p_mc)}")
+
+    rule("Tail behaviour -- the number a lab would actually plan against")
+    for key in ("adaptive", "informed", "random"):
+        exp = summaries[key]["exp"]
+        ok = summaries[key]["ok"].astype(bool)
+        print(f"  {LABELS[key]:<32}"
+              f"worst run {exp.max():>3.0f}   "
+              f"P(>=61, i.e. no better than 2006) = {pct(np.mean(exp >= base))}   "
+              f"failures {int((~ok).sum())}")
+        if (~ok).any():
+            print(f"      failing runs used {np.median(exp[~ok]):.0f} experiments "
+                  f"(median) vs {np.median(exp[ok]):.0f} for successes")
+
+    # Does a failed run announce itself?
+    rule("Is failure detectable from the inside?")
+    for key in ("adaptive", "informed", "random"):
+        mask = where(cols, strategy=key)
+        conf = cols["final_confidence"][mask]
+        ok = cols["correct"][mask].astype(bool)
+        if (~ok).any():
+            print(f"  {LABELS[key]:<32}mean reported confidence: "
+                  f"{conf[ok].mean():.3f} when right, {conf[~ok].mean():.3f} when wrong")
+        else:
+            print(f"  {LABELS[key]:<32}no failures to compare")
+
+
+def d_q(d: dict) -> str:
+    return f"{d['q25']:.0f}-{d['q75']:.0f}"
+
+
+def fmt_p(p: float) -> str:
+    return "< 1e-4" if p < 1e-4 else f"{p:.4f}"
+
+
+# ------------------------------------------------------------------ exp 06
+
+
+def section_06() -> None:
+    cols = load("06_synergy_threshold.csv")
+    rule("Experiment 6 -- how much graded synergy does the method need?")
+    grid = sorted(set(cols["oracle_partial_3"].tolist()))
+
+    print("  three-of-four efficiency, and what the searcher believes about it")
+    print(f"\n  {'partial':>8} │ {'matched: median':>16} {'success':>9} │"
+          f" {'misspec: median':>16} {'success':>9}")
+    print("  " + "-" * 72)
+    table = {}
+    for p in grid:
+        line = f"  {p:>8.3f} │"
+        for arm in ("matched", "misspecified"):
+            mask = where(cols, arm=arm, oracle_partial_3=p)
+            exp = cols["n_experiments"][mask]
+            ok = cols["correct"][mask]
+            table[(arm, p)] = (exp, ok)
+            line += f" {np.median(exp):>16.0f} {pct(ok.mean()):>9} │"
+        print(line)
+
+    print("\n  Expected colonies from a three-of-four pool, for scale:")
+    print("    partial 0.10 -> ~4 colonies (the calibrated value, i.e. the 2006 assay)")
+    print("    partial 0.02 -> ~1 colony     partial 0.005 -> ~0.2 colonies")
+
+    rule("Where the method breaks, and why")
+    for arm in ("matched", "misspecified"):
+        xs = np.array(sorted(p for (a, p) in table if a == arm and p > 0))
+        success = np.concatenate([table[(arm, p)][1] for p in xs])
+        x_rep = np.concatenate([np.full(table[(arm, p)][1].size, p) for p in xs])
+        worst = min(table[(arm, p)][1].mean() for p in xs)
+        t50, slope = logistic_threshold(x_rep, success, 0.5)
+        t90, _ = logistic_threshold(x_rep, success, 0.9)
+
+        def report(level: float, est: float) -> str:
+            # A logistic fitted to data that never drops below the level has no
+            # crossing point; reporting the extrapolated number would be a lie.
+            if np.isnan(est) or not (xs.min() <= est <= xs.max()):
+                return f"no {100 * level:.0f}% crossing inside the tested range"
+            return f"{100 * level:.0f}% success at partial = {est:.4f} (~{45 * est:.1f} colonies)"
+
+        print(f"  {arm}")
+        print(f"    lowest success anywhere in the sweep: {pct(worst)}")
+        print(f"    {report(0.5, t50)}")
+        print(f"    {report(0.9, t90)}")
+
+    rule("The real axis is not synergy strength -- it is calibration error")
+    print("  The misspecified searcher always assumes partial = 0.10. Success as a")
+    print("  function of how wrong that assumption is:\n")
+    print(f"  {'true/assumed':>13} │ {'true partial':>12} │ {'success':>8} │"
+          f" {'median':>7} │ {'reported confidence when wrong':>31}")
+    print("  " + "-" * 84)
+    for p in grid:
+        exp, ok = table[("misspecified", p)]
+        ratio = p / 0.10
+        mask = where(cols, arm="misspecified", oracle_partial_3=p)
+        conf = cols["final_confidence"][mask]
+        wrong = ok.astype(bool) == False  # noqa: E712
+        conf_wrong = f"{conf[wrong].mean():.3f}" if wrong.any() else "--"
+        label = f"{ratio:.2f}x" if p > 0 else "0x"
+        print(f"  {label:>13} │ {p:>12.3f} │ {pct(ok.mean()):>8} │"
+              f" {np.median(exp):>7.0f} │ {conf_wrong:>31}")
+
+    rule("How much of the failure is a modelling error rather than lost information?")
+    print("  Paired by run: same hidden recipe and noise, differing only in whether")
+    print("  the searcher's likelihood knows the true partial efficiency.\n")
+    for p in grid:
+        if p == 0:
+            continue
+        a_ok = table[("matched", p)][1].astype(bool)
+        b_ok = table[("misspecified", p)][1].astype(bool)
+        n = min(a_ok.size, b_ok.size)
+        a_ok, b_ok = a_ok[:n], b_ok[:n]
+        only_a = int((a_ok & ~b_ok).sum())
+        only_b = int((~a_ok & b_ok).sum())
+        p_mc = mcnemar_exact(int((a_ok & b_ok).sum()), only_a, only_b,
+                             int((~a_ok & ~b_ok).sum()))
+        gap = a_ok.mean() - b_ok.mean()
+        flag = "  <-- calibration matters here" if p_mc < 0.05 else ""
+        print(f"    partial {p:>6.3f}:  matched {pct(a_ok.mean()):>6}"
+              f"   misspecified {pct(b_ok.mean()):>6}"
+              f"   gap {100 * gap:>+5.0f} pts   McNemar p = {fmt_p(p_mc)}{flag}")
+
+
+# ------------------------------------------------------------------ exp 07
+
+
+def section_07() -> None:
+    cols = load("07_stopping_rule.csv")
+    rule("Experiment 7 -- the price of certainty, and is the posterior honest?")
+    grid = sorted(set(cols["confidence_target"].tolist()))
+
+    for strategy in ("adaptive", "informed"):
+        print(f"\n  {LABELS[strategy]}")
+        print(f"  {'target':>8} │ {'median':>7} {'mean':>7} {'p90':>6} │"
+              f" {'success':>9} {'95% CI':>16} │ {'mean reported':>14} {'gap':>7}")
+        print("  " + "-" * 86)
+        for c in grid:
+            mask = where(cols, strategy=strategy, confidence_target=c)
+            exp = cols["n_experiments"][mask]
+            ok = cols["correct"][mask]
+            conf = cols["final_confidence"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            gap = float(np.nanmean(conf)) - float(ok.mean())
+            print(f"  {c:>8.4f} │ {np.median(exp):>7.0f} {exp.mean():>7.1f}"
+                  f" {np.percentile(exp, 90):>6.0f} │ {pct(ok.mean()):>9}"
+                  f" {f'[{pct(lo)}, {pct(hi)}]':>16} │"
+                  f" {float(np.nanmean(conf)):>14.3f} {gap:>+7.3f}")
+
+    rule("Calibration verdict")
+    for strategy in ("adaptive", "informed"):
+        over = []
+        for c in grid:
+            mask = where(cols, strategy=strategy, confidence_target=c)
+            ok = cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            # Over-confident iff the stated threshold is above the plausible
+            # range of the empirical success rate.
+            if c > hi:
+                over.append((c, ok.mean(), hi))
+        if over:
+            print(f"  {LABELS[strategy]}: over-confident at "
+                  + ", ".join(f"{c:.4f} (actual {pct(a)})" for c, a, _ in over))
+        else:
+            print(f"  {LABELS[strategy]}: no threshold where the stated confidence "
+                  "exceeds the observed success rate")
+
+    rule("Marginal cost of certainty")
+    for strategy in ("adaptive", "informed"):
+        meds = {}
+        for c in grid:
+            mask = where(cols, strategy=strategy, confidence_target=c)
+            meds[c] = float(np.median(cols["n_experiments"][mask]))
+        steps = []
+        keys = sorted(meds)
+        for lo_c, hi_c in zip(keys, keys[1:]):
+            steps.append(f"{lo_c:.4f}->{hi_c:.4f}: {meds[hi_c] - meds[lo_c]:+.0f}")
+        print(f"  {LABELS[strategy]}: " + "   ".join(steps))
+
+
+# ------------------------------------------------------------------ exp 08
+
+
+def section_08() -> None:
+    cols = load("08_scaling.csv")
+    rule("Experiment 8 -- scaling in candidate-list size")
+    sizes = sorted(set(cols["n_candidates"].tolist()))
+
+    def n_hypotheses(n: int) -> int:
+        from math import comb
+
+        return comb(int(n), 4)
+
+    print(f"  {'cands':>6} {'hypotheses':>12} │ {'historical':>11} │"
+          f" {'adaptive':>9} {'success':>8} {'sec/run':>8} │"
+          f" {'informed':>9} {'success':>8}")
+    print("  " + "-" * 86)
+    series = {k: [] for k in ("adaptive", "informed", "historical")}
+    secs = []
+    for n in sizes:
+        row = f"  {n:>6.0f} {n_hypotheses(n):>12,} │"
+        for key in ("historical", "adaptive", "informed"):
+            mask = where(cols, strategy=key, n_candidates=n)
+            exp = cols["n_experiments"][mask]
+            ok = cols["correct"][mask]
+            series[key].append(float(np.median(exp)))
+            if key == "historical":
+                row += f" {np.median(exp):>11.0f} │"
+            else:
+                row += f" {np.median(exp):>9.0f} {pct(ok.mean()):>8}"
+                if key == "adaptive":
+                    t = float(np.median(cols["elapsed_s"][mask]))
+                    secs.append(t)
+                    row += f" {t:>8.1f} │"
+        print(row)
+
+    rule("Growth rates")
+    bits = [np.log2(n_hypotheses(n)) for n in sizes]
+    for key in ("historical", "adaptive", "informed"):
+        slope = np.polyfit(bits, series[key], 1)[0]
+        print(f"  {LABELS[key]:<32}{slope:>6.2f} experiments per bit of "
+              f"hypothesis-space entropy")
+    print(f"\n  wet-lab cost vs candidates : exponent {loglog_slope(np.array(sizes), np.array(series['adaptive'])):.2f}"
+          "   (1.00 would be linear, as the historical protocol is)")
+    print(f"  compute cost vs hypotheses : exponent "
+          f"{loglog_slope(np.array([n_hypotheses(n) for n in sizes]), np.array(secs)):.2f}"
+          "   (design-step cost, seconds per run)")
+
+    print("\n  Saving against the historical protocol at each size:")
+    for n, h, a, i in zip(sizes, series["historical"], series["adaptive"], series["informed"]):
+        print(f"    {n:>3.0f} candidates: adaptive {100 * (1 - a / h):>3.0f}%"
+              f"   informed {100 * (1 - i / h):>3.0f}%")
+
+
+# ------------------------------------------------------------------ exp 09
+
+
+def section_09() -> None:
+    cols = load("09_prior_quality.csv")
+    rule("Experiment 9 -- when does a literature prior stop helping and start hurting?")
+    strengths = sorted(set(cols["prior_strength"].tolist()))
+    dropped = sorted(set(cols["prior_dropped"].tolist()))
+
+    for k in sorted(set(cols["prior_informed"].tolist())):
+        print(f"\n  Prior up-weights {k:.0f} factors "
+              f"({k - 4:.0f} of them decoys when coverage is complete)")
+        print(f"  {'strength':>9} │ " + " │ ".join(
+            f"drop {d:.0f}: {'med':>4} {'succ':>5}" for d in dropped))
+        print("  " + "-" * (12 + 17 * len(dropped)))
+        for s in strengths:
+            line = f"  {s:>9.1f} │ "
+            cells = []
+            for d in dropped:
+                mask = where(cols, prior_strength=s, prior_dropped=d, prior_informed=k)
+                exp = cols["n_experiments"][mask]
+                ok = cols["correct"][mask]
+                cells.append(f"{np.median(exp):>10.0f} {pct(ok.mean()):>5}")
+            print(line + " │ ".join(cells))
+
+    rule("The trade: a strong prior is cheap when right and dangerous when wrong")
+    print(f"  {'strength':>9} │ {'median when complete':>21} │"
+          f" {'median when 1 missing':>22} │ {'success when 1 missing':>23}")
+    print("  " + "-" * 82)
+    for s in strengths:
+        m0 = where(cols, prior_strength=s, prior_dropped=0)
+        m1 = where(cols, prior_strength=s, prior_dropped=1)
+        e0 = cols["n_experiments"][m0]
+        e1 = cols["n_experiments"][m1]
+        ok1 = cols["correct"][m1]
+        lo, hi = wilson_ci(int(ok1.sum()), int(ok1.size))
+        print(f"  {s:>9.1f} │ {np.median(e0):>21.0f} │ {np.median(e1):>22.0f} │"
+              f" {pct(ok1.mean())} [{pct(lo)}, {pct(hi)}]")
+
+    print("\n  Failure rate by coverage, pooled over breadth, per strength:")
+    for s in strengths:
+        parts = []
+        for d in dropped:
+            mask = where(cols, prior_strength=s, prior_dropped=d)
+            ok = cols["correct"][mask]
+            parts.append(f"drop {d:.0f}: {pct(1 - ok.mean())}")
+        print(f"    strength {s:>6.1f}   " + "   ".join(parts))
+
+
+def section_10() -> None:
+    cols = load("10_unknown_cardinality.csv")
+    rule("Experiment 10 -- recipe size as a latent variable instead of an assumption")
+    sizes = sorted(set(cols["true_size"].tolist()))
+
+    print(f"  {'true size':>10} │ {'designer':>9} │ {'median':>7} {'mean':>7} │"
+          f" {'exact recipe':>13} {'95% CI':>17} │ {'right size':>11} │ {'P(true size)':>13}")
+    print("  " + "-" * 96)
+    cells = {}
+    for k in sizes:
+        for designer in ("fixed-4", "latent"):
+            mask = where(cols, true_size=k, designer=designer)
+            exp = cols["n_experiments"][mask]
+            ok = cols["correct"][mask]
+            size_ok = cols["size_correct"][mask]
+            p_true = cols["p_true_size"][mask]
+            cells[(k, designer)] = (exp, ok, p_true)
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            print(f"  {k:>10.0f} │ {designer:>9} │ {np.median(exp):>7.0f} {exp.mean():>7.1f} │"
+                  f" {pct(ok.mean()):>13} {f'[{pct(lo)}, {pct(hi)}]':>17} │"
+                  f" {pct(size_ok.mean()):>11} │ {np.mean(p_true):>13.3f}")
+
+    rule("Does the fix cost anything on the case it did not need to generalise for?")
+    e_fixed, ok_fixed, _ = cells[(4, "fixed-4")]
+    e_latent, ok_latent, _ = cells[(4, "latent")]
+    diff, p = paired_permutation_test(e_latent, e_fixed)
+    print(f"  Four-factor truth, the case the fixed designer was built for:")
+    print(f"    fixed-4  median {np.median(e_fixed):.0f}, success {pct(ok_fixed.mean())}")
+    print(f"    latent   median {np.median(e_latent):.0f}, success {pct(ok_latent.mean())}")
+    print(f"    premium  {diff:+.1f} experiments   permutation p = {fmt_p(p)}")
+
+    rule("Is the failure still silent?")
+    print("  The danger was never the failure itself but that the posterior stayed")
+    print("  confident through it. Reported confidence, split by whether the answer")
+    print("  was right:\n")
+    for k in sizes:
+        for designer in ("fixed-4", "latent"):
+            mask = where(cols, true_size=k, designer=designer)
+            conf = cols["final_confidence"][mask]
+            ok = cols["correct"][mask].astype(bool)
+            right = f"{conf[ok].mean():.3f}" if ok.any() else "--"
+            wrong = f"{conf[~ok].mean():.3f}" if (~ok).any() else "--"
+            # For the latent designer, the size marginal is the diagnostic the
+            # fixed designer cannot produce at all.
+            p_true = cols["p_true_size"][mask]
+            diag = (
+                f"   P(true size) = {p_true[~ok].mean():.3f} when wrong"
+                if designer == "latent" and (~ok).any()
+                else ""
+            )
+            print(f"    size {k:.0f}, {designer:<8} confidence {right} when right, "
+                  f"{wrong} when wrong{diag}")
+
+
+SECTIONS = {
+    "05": section_05,
+    "06": section_06,
+    "07": section_07,
+    "08": section_08,
+    "09": section_09,
+    "10": section_10,
+}
+FILES = {
+    "05": "05_scale_main.csv",
+    "06": "06_synergy_threshold.csv",
+    "07": "07_stopping_rule.csv",
+    "08": "08_scaling.csv",
+    "09": "09_prior_quality.csv",
+    "10": "10_unknown_cardinality.csv",
+}
+
+
+def main() -> None:
+    wanted = sys.argv[1:] or list(SECTIONS)
+    for key in wanted:
+        if key not in SECTIONS:
+            print(f"  unknown section {key!r}; choose from {', '.join(SECTIONS)}")
+            continue
+        if not (RESULTS / FILES[key]).exists():
+            print(f"  skipping {key}: results/{FILES[key]} not present yet")
+            continue
+        SECTIONS[key]()
+    print()
+
+
+if __name__ == "__main__":
+    main()

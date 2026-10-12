@@ -1,7 +1,8 @@
 cff-version: 1.2.0
 title: >-
   yamanaka-replay: adaptive experimental design recovers the Yamanaka factors
-  in an order of magnitude fewer experiments
+  in an order of magnitude fewer experiments, and fails silently when the
+  recipe size is assumed
 message: If you use this software or its results, please cite it.
 type: software
 authors:
@@ -17,14 +18,22 @@ abstract: >-
   An in-silico replay of the 2006 discovery of the Yamanaka reprogramming
   factors under its original fitness function -- the colony count surviving
   Fbx15/G418 selection -- measuring cost in wet-lab experiments rather than
-  compute. Adaptive Bayesian experimental design recovers the four-factor
-  recipe in a median of 6-11 experiments against 61 for the historical
-  leave-one-out protocol. An ablation shows the saving comes from informative
-  experiment selection rather than from Bayesian inference alone. Two
-  structural failure modes are characterised: absence of graded synergy, and
-  misspecified recipe cardinality, the latter failing silently at 0 percent
-  success. The oracle is a simulator calibrated to published figures; no
-  biological claim is made.
+  compute. Over 300 paired replicates, adaptive Bayesian experimental design
+  recovers the four-factor recipe in a median of 6-10 experiments against 61
+  for the historical leave-one-out protocol, and is cheaper in 300 of 300
+  runs. An ablation shows the saving comes from informative experiment
+  selection rather than from Bayesian inference alone. A campaign of 6,320
+  replicates then isolates the method's limits. Absence of graded synergy is
+  found to be a calibration error rather than a structural one: with no
+  partial signal at all, a correctly specified searcher still succeeds in
+  100 percent of runs. The one structural failure is fixed recipe
+  cardinality, which fails silently and symmetrically -- 0 percent success at
+  0.999 reported confidence for both three- and five-factor truths -- and is
+  removed here by treating recipe size as a latent variable, restoring 100
+  percent success for a premium of one experiment. A recurring pattern is
+  reported across three independent designs: more efficient experiment
+  selection makes model error less detectable. The oracle is a simulator
+  calibrated to published figures; no biological claim is made.
 keywords:
   - adaptive experimental design
   - Bayesian optimal experimental design
@@ -32,9 +41,11 @@ keywords:
   - cellular reprogramming
   - induced pluripotent stem cells
   - group testing
+  - latent cardinality
+  - model misspecification
 license: MIT
-version: 1.0.0
-date-released: "2026-10-11"
+version: 1.1.0
+date-released: "2026-10-12"
 references:
   - type: article
     authors:
