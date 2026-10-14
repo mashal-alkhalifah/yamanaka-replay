@@ -398,17 +398,17 @@ def figure6_real_data() -> None:
         ax.annotate(label, (0.02, i + 0.40), fontsize=7, color=color, va="center")
 
     for _, value in triples:
-        ax.plot([value], [1.62], marker="^", ms=7, color=ORANGE,
+        ax.plot([value], [1.50], marker="^", ms=7, color=ORANGE,
                 markeredgecolor="white", markeredgewidth=0.8)
     if triples:
         ax.annotate("the two measured 3-factor combinations ("
                     + ", ".join(f"{v:.2f}" for _, v in triples) + ")",
-                    (0.02, 1.62), fontsize=7, color=ORANGE, va="center")
+                    (0.02, 1.72), fontsize=7, color=ORANGE, va="center")
 
     ax.axvline(0.10, color=VERMILLION, lw=1.4, ls=(0, (3, 2)))
     ax.annotate("oracle assumes 0.10", (0.13, -0.42), color=VERMILLION, fontsize=7.5)
     ax.set_xlim(0, 2.0)
-    ax.set_ylim(-0.55, 1.80)
+    ax.set_ylim(-0.55, 1.92)
     ax.set_yticks([])
     ax.set_xlabel("one factor's effect ÷ the combination's effect")
     ax.grid(axis="y", visible=False)

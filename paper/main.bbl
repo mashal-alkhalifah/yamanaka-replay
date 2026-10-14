@@ -50,7 +50,7 @@ Jiaqi Zhang, Louis Cammarata, Chandler Squires, Themistoklis~P. Sapsis, and
 
 \bibitem[Tosh et~al.(2025)Tosh, Tec, et~al.]{tosh2025}
 Christopher Tosh, Mauricio Tec, et~al.
-\newblock A bayesian active learning platform for scalable combination drug
+\newblock A {B}ayesian active learning platform for scalable combination drug
   screens.
 \newblock \emph{Nature Communications}, 16:\penalty0 156, 2025.
 \newblock \doi{10.1038/s41467-024-55287-7}.
@@ -95,7 +95,7 @@ Lorenzo Talamanca and Julian Trouillon.
   Biton, Mostafavi, and Scalia]{edwards2026}
 Carl Edwards, Edward De~Brouwer, Xiner Li, Namkyeong Lee, Ehsan Hajiramezanali,
   Anne Biton, Sara Mostafavi, and Gabriele Scalia.
-\newblock Biology-in-the-loop: Amortized adaptive hit discovery in crispr
+\newblock Biology-in-the-loop: Amortized adaptive hit discovery in {CRISPR}
   screens, 2026.
 
 \bibitem[Qin et~al.(2025)Qin, Wessels, Fernandez-Granda, and Hao]{qin2025}
@@ -113,8 +113,8 @@ Owen J.~L. Rackham et~al.
 \newblock \doi{10.1038/ng.3487}.
 
 \bibitem[tfc(2025)]{tfcomb2025}
-Tfcomb identifies transcription factor combinations for cellular reprogramming
-  based on single-cell multiomics data.
+{TFcomb} identifies transcription factor combinations for cellular
+  reprogramming based on single-cell multiomics data.
 \newblock \emph{Genome Research}, 35\penalty0 (6):\penalty0 1429--1439, 2025.
 \newblock \doi{10.1101/gr.279955.124}.
 \newblock Author list not reproduced here: the article's own pages print
@@ -122,7 +122,7 @@ Tfcomb identifies transcription factor combinations for cellular reprogramming
 
 \bibitem[Roohani et~al.(2022)Roohani, Huang, and Leskovec]{roohani2022}
 Yusuf Roohani, Kexin Huang, and Jure Leskovec.
-\newblock Gears: Predicting transcriptional outcomes of novel multi-gene
+\newblock {GEARS}: Predicting transcriptional outcomes of novel multi-gene
   perturbations, 2022.
 \newblock bioRxiv preprint; later published in Nature Biotechnology.
 
@@ -167,12 +167,12 @@ Julia Joung, Sai Ma, Tristan Tay, et~al.
 Joseph~M. Replogle, Reuben~A. Saunders, Angela~N. Pogson, Jeffrey~A. Hussmann,
   et~al.
 \newblock Mapping information-rich genotype-phenotype landscapes with
-  genome-scale perturb-seq.
+  genome-scale {P}erturb-seq.
 \newblock \emph{Cell}, 185\penalty0 (14):\penalty0 2559--2575.e28, 2022.
 
 \bibitem[Peidli et~al.(2024)Peidli, Green, Shen, Gross, et~al.]{peidli2024}
 Stefan Peidli, Tessa~D. Green, Ciyue Shen, Torsten Gross, et~al.
-\newblock scperturb: harmonized single-cell perturbation data.
+\newblock {scPerturb}: harmonized single-cell perturbation data.
 \newblock \emph{Nature Methods}, 2024.
 \newblock \doi{10.1038/s41592-023-02144-y}.
 
