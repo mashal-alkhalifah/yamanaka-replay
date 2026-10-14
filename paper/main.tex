@@ -101,16 +101,17 @@ $k$ is sufficient, and the task is to find $R$. What makes it hard is not the
 size of the space but the price of a query. Each query is a transduction
 experiment with a biological readout, so budgets are counted in tens.
 
-The canonical instance is the screen of \citet{takahashi2006}. Twenty-four
-candidates were selected from the literature; the readout was the number of
+The canonical instance is the screen of \citet{takahashi2006}, extended to human
+cells the following year \citep{takahashi2007}. Twenty-four candidates were
+selected from the literature; the readout was the number of
 drug-resistant colonies surviving Fbx15/G418 selection; and the search followed
 a fixed protocol --- each factor alone, the full pool, leave-one-out from the
 pool, then leave-one-out from the surviving subset --- consuming $2n + 13 = 61$
 experiments at $n = 24$ regardless of what the data said.
 
-Adaptive experimental design \citep{lindley1956, chaloner1995} should improve on
-a protocol fixed in advance, and in perturbation biology several groups have
-shown that it does \citep{zhang2023, tosh2025}. What has not been established is
+Adaptive experimental design \citep{lindley1956, chaloner1995, rainforth2024}
+should improve on a protocol fixed in advance, and in perturbation biology
+several groups have shown that it does \citep{zhang2023, tosh2025}. What has not been established is
 the counterfactual for a specific documented discovery: not predictive accuracy
 over an adaptively collected dataset, but the number of wet-lab experiments
 needed to reach a known answer under the assay actually used. The 2006 screen
@@ -120,7 +121,7 @@ record.
 Our second contribution is a reclassification. The colony assay is not generic
 combinatorial search: a pool produces colonies efficiently only when it contains
 all of $R$, weakly when it contains all but one, and not at all otherwise. In
-group-testing language \citep{dorfman1943}, a test is negative at or below a
+group-testing language \citep{dorfman1943, aldridge2019}, a test is negative at or below a
 lower threshold $l$, positive at or above an upper threshold $u$, and stochastic
 in the gap $g = u - l - 1$. This is threshold group testing
 \citep{damaschke2006} in its stochastic form \citep{chan2013}, with $u = k$,
@@ -128,6 +129,25 @@ $l = k - 2$ and $g = 1$. The reclassification is load-bearing rather than
 decorative: it supplies a theoretical yardstick for the achievable test count
 and classical algorithms as baselines, and both change the conclusions one would
 otherwise draw.
+
+\paragraph{Related work.} Four literatures meet here. Group testing supplies the
+problem class and its bounds, from the original pooled-screen argument
+\citep{dorfman1943} through the modern information-theoretic treatment
+\citep{aldridge2019} to the threshold variants that match this assay
+\citep{damaschke2006, chan2013} and to the sub-problem of an unknown number of
+defectives \citep{bshouty2018}. Bayesian experimental design supplies the
+criterion \citep{lindley1956, chaloner1995, rainforth2024}. Applied to
+perturbation biology, it has been used to choose genetic interventions
+\citep{zhang2023} and combination drug screens \citep{tosh2025}, both evaluated
+on predictive accuracy over collected data rather than against a documented
+discovery. A parallel line predicts rather than designs: ranking reprogramming
+factors from expression and network data \citep{rackham2016}, and predicting the
+outcome of unseen multi-gene perturbations \citep{roohani2022} --- models that
+could eventually replace the oracle used here, which is the direction the
+virtual-cell programme points \citep{bunne2024}. What is missing from all of
+them, and supplied here, is the counterfactual against a historical experiment
+count, the regime boundary against a classical algorithm, and a check of the
+assay model's central assumption against measured data.
 
 We state plainly what this study is not. The oracle is a simulator calibrated to
 summary figures, not an assay and not a fit to raw data; Section~\ref{sec:real}
@@ -359,7 +379,9 @@ evidence quickly gathers it quickly for a wrong hypothesis too.
 \end{figure}
 
 Every result above is conditional on gap structure of the assumed shape
-existing. Two public datasets allow a direct check. For a perturbation $p$ with
+existing. Single-cell perturbation screens now cover enough combinations to
+check it directly \citep{replogle2022, peidli2024}, and two of them carry the
+pairs and singles the measurement needs. For a perturbation $p$ with
 pseudobulk profile $x_p$ and reference $x_0$, write
 $\delta_p = x_p - x_0$; for each combination whose one-short constituents were
 also profiled, we measure
@@ -402,6 +424,14 @@ designer fails silently. A designer calibrated as ours is would therefore be
 expected to fail confidently on these systems, while the same designer informed
 of the true $\rho$ succeeds in 98--100\% of runs at every value tested,
 including $\rho = 0$. The gap response must be estimated, not assumed.
+
+The constructive reading is that the oracle should be replaced rather than
+recalibrated: a predictive model fitted to measured perturbation outcomes
+\citep{roohani2022}, or the broader virtual-cell programme
+\citep{bunne2024}, would supply a gap response estimated from data rather than
+assumed, and the designer would inherit whatever accuracy that model has. The
+experiments above then become the specification for how accurate it must be:
+within a factor of two on the gap response, and honest about recipe size.
 
 One boundary deserves emphasis. Both datasets read out the transcriptome, while
 the 2006 assay reads out a rare discrete phenotype --- a colony forms or does
@@ -451,7 +481,10 @@ untrustworthy regardless of what its posterior reports.
 summary figures, so its numbers are properties of a stated model; the design of
 the comparisons, not the realism of the oracle, carries the conclusions. The
 audit datasets read out expression rather than a rare phenotype, which is the
-readout the historical assay used. The historical protocol is reconstructed from
+readout the historical assay used; the evaluator-quality lesson of
+\citet{okita2007}, where a better selection marker changed which colonies counted
+as success, is the biological form of the same concern. The historical protocol is
+reconstructed from
 the paper's description rather than laboratory records. The latent-cardinality
 designer widens its assumption to sizes 3--6 rather than eliminating it, so a
 seven-factor truth would reproduce the original failure. Exact enumeration
@@ -542,8 +575,8 @@ under the null.
 \subsection{Measured datasets}
 
 \citet{norman2019} was obtained from the scPerturb harmonisation
-(\texttt{NormanWeissman2019\_filtered.h5ad}) and \citet{joung2023} from its
-combinatorial subset. Counts were normalised to $10^4$ per cell, log1p
+\citep{peidli2024} (\texttt{NormanWeissman2019\_filtered.h5ad}) and
+\citet{joung2023} from its combinatorial subset. Counts were normalised to $10^4$ per cell, log1p
 transformed, restricted to the 2000 most variable genes, and averaged per
 perturbation over conditions with at least 20 cells, giving 237 and 52
 conditions respectively. In the hESC subset GFP is an inert partner, so

@@ -1,4 +1,4 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{20}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -12,6 +12,15 @@ Kazutoshi Takahashi and Shinya Yamanaka.
 \newblock \emph{Cell}, 126\penalty0 (4):\penalty0 663--676, 2006.
 \newblock \doi{10.1016/j.cell.2006.07.024}.
 
+\bibitem[Takahashi et~al.(2007)Takahashi, Tanabe, Ohnuki, Narita, Ichisaka,
+  Tomoda, and Yamanaka]{takahashi2007}
+Kazutoshi Takahashi, Koji Tanabe, Mari Ohnuki, Megumi Narita, Tomoko Ichisaka,
+  Kiichiro Tomoda, and Shinya Yamanaka.
+\newblock Induction of pluripotent stem cells from adult human fibroblasts by
+  defined factors.
+\newblock \emph{Cell}, 131\penalty0 (5):\penalty0 861--872, 2007.
+\newblock \doi{10.1016/j.cell.2007.11.019}.
+
 \bibitem[Lindley(1956)]{lindley1956}
 Dennis~V. Lindley.
 \newblock On a measure of the information provided by an experiment.
@@ -22,6 +31,13 @@ Dennis~V. Lindley.
 Kathryn Chaloner and Isabella Verdinelli.
 \newblock Bayesian experimental design: a review.
 \newblock \emph{Statistical Science}, 10\penalty0 (3):\penalty0 273--304, 1995.
+
+\bibitem[Rainforth et~al.(2024)Rainforth, Foster, Ivanova, and
+  Bickford~Smith]{rainforth2024}
+Tom Rainforth, Adam Foster, Desi~R. Ivanova, and Freddie Bickford~Smith.
+\newblock Modern bayesian experimental design.
+\newblock \emph{Statistical Science}, 39\penalty0 (1), 2024.
+\newblock \doi{10.1214/23-STS915}.
 
 \bibitem[Zhang et~al.(2023)Zhang, Cammarata, Squires, Sapsis, and
   Uhler]{zhang2023}
@@ -45,6 +61,13 @@ Robert Dorfman.
 \newblock \emph{The Annals of Mathematical Statistics}, 14\penalty0
   (4):\penalty0 436--440, 1943.
 
+\bibitem[Aldridge et~al.(2019)Aldridge, Johnson, and Scarlett]{aldridge2019}
+Matthew Aldridge, Oliver Johnson, and Jonathan Scarlett.
+\newblock Group testing: An information theory perspective.
+\newblock \emph{Foundations and Trends in Communications and Information
+  Theory}, 15\penalty0 (3-4):\penalty0 196--392, 2019.
+\newblock \doi{10.1561/0100000099}.
+
 \bibitem[Damaschke(2006)]{damaschke2006}
 Peter Damaschke.
 \newblock Threshold group testing.
@@ -66,6 +89,26 @@ Nader~H. Bshouty, Vivian~E. Bshouty-Hurani, George Haddad, Thomas Hashem, Fadi
 \newblock In \emph{Proceedings of Algorithmic Learning Theory (ALT)}, volume~83
   of \emph{Proceedings of Machine Learning Research}, pages 93--110, 2018.
 
+\bibitem[Rackham et~al.(2016)]{rackham2016}
+Owen J.~L. Rackham et~al.
+\newblock A predictive computational framework for direct reprogramming between
+  human cell types.
+\newblock \emph{Nature Genetics}, 48\penalty0 (3):\penalty0 331--335, 2016.
+\newblock \doi{10.1038/ng.3487}.
+
+\bibitem[Roohani et~al.(2022)Roohani, Huang, and Leskovec]{roohani2022}
+Yusuf Roohani, Kexin Huang, and Jure Leskovec.
+\newblock Gears: Predicting transcriptional outcomes of novel multi-gene
+  perturbations, 2022.
+\newblock bioRxiv preprint; later published in Nature Biotechnology.
+
+\bibitem[Bunne et~al.(2024)Bunne, Roohani, Rosen, Gupta, et~al.]{bunne2024}
+Charlotte Bunne, Yusuf Roohani, Yanay Rosen, Ankit Gupta, et~al.
+\newblock How to build the virtual cell with artificial intelligence:
+  Priorities and opportunities.
+\newblock \emph{Cell}, 187\penalty0 (25):\penalty0 7045--7063, 2024.
+\newblock \doi{10.1016/j.cell.2024.11.015}.
+
 \bibitem[Norman et~al.(2019)Norman, Horlbeck, Replogle, Ge, Xu, Jost, Gilbert,
   and Weissman]{norman2019}
 Thomas~M. Norman, Max~A. Horlbeck, Joseph~M. Replogle, Alex~Y. Ge, Albert Xu,
@@ -80,5 +123,25 @@ Julia Joung, Sai Ma, Tristan Tay, et~al.
 \newblock A transcription factor atlas of directed differentiation.
 \newblock \emph{Cell}, 186\penalty0 (1):\penalty0 209--229.e26, 2023.
 \newblock PMID 36608654.
+
+\bibitem[Replogle et~al.(2022)Replogle, Saunders, Pogson, Hussmann,
+  et~al.]{replogle2022}
+Joseph~M. Replogle, Reuben~A. Saunders, Angela~N. Pogson, Jeffrey~A. Hussmann,
+  et~al.
+\newblock Mapping information-rich genotype-phenotype landscapes with
+  genome-scale perturb-seq.
+\newblock \emph{Cell}, 185\penalty0 (14):\penalty0 2559--2575.e28, 2022.
+
+\bibitem[Peidli et~al.(2024)Peidli, Green, Shen, Gross, et~al.]{peidli2024}
+Stefan Peidli, Tessa~D. Green, Ciyue Shen, Torsten Gross, et~al.
+\newblock scperturb: harmonized single-cell perturbation data.
+\newblock \emph{Nature Methods}, 2024.
+\newblock \doi{10.1038/s41592-023-02144-y}.
+
+\bibitem[Okita et~al.(2007)Okita, Ichisaka, and Yamanaka]{okita2007}
+Keisuke Okita, Tomoko Ichisaka, and Shinya Yamanaka.
+\newblock Generation of germline-competent induced pluripotent stem cells.
+\newblock \emph{Nature}, 448:\penalty0 313--317, 2007.
+\newblock \doi{10.1038/nature05934}.
 
 \end{thebibliography}

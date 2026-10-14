@@ -182,21 +182,20 @@ def figure2_scaling() -> None:
         ax.fill_between(xs, los, his, color=st["color"], alpha=0.12, linewidth=0)
         ax.plot(xs, meds, color=st["color"], ls=st["ls"], marker=st["marker"],
                 ms=4.5, lw=1.6, label=st["label"])
-        ax.annotate(st["label"], (xs[-1], meds[-1]), xytext=(4, 0),
-                    textcoords="offset points", color=st["color"], fontsize=7,
-                    va="center")
 
     # growth-rate reference: O(g^2 d log n), constant fitted at the smallest size
     ref = 4 * np.log(sizes)
     scale = float(np.median(pick("half-removal", sizes[0]))) / ref[0]
     ax.plot(sizes, scale * ref, color=MUTED, lw=1.0, ls=(0, (4, 2)))
-    ax.annotate("$O(d\\log n)$", (sizes[-1], scale * ref[-1]), xytext=(4, -8),
-                textcoords="offset points", color=MUTED, fontsize=7)
+    ax.annotate("$O(d\\log n)$", (sizes[-1], scale * ref[-1]), xytext=(-6, -12),
+                textcoords="offset points", color=MUTED, fontsize=7, ha="right")
 
     ax.set_xlabel("candidate factors $n$")
     ax.set_ylabel("experiments (median, IQR band)")
     ax.set_xticks(sizes)
-    ax.set_xlim(sizes[0] - 1, sizes[-1] + 16)
+    ax.set_xlim(sizes[0] - 1, sizes[-1] + 2)
+    ax.legend(frameon=False, fontsize=7, loc="upper left", handlelength=2.4,
+              borderpad=0.1, labelspacing=0.35)
     tidy(ax)
     panel(ax, "A", "wet-lab cost")
 
@@ -209,15 +208,15 @@ def figure2_scaling() -> None:
             xs.append(n), secs.append(max(float(np.median(s_n)), 1e-4))
         st = STYLE[key]
         bx.plot(xs, secs, color=st["color"], ls=st["ls"],
-                marker=st["marker"], ms=4.5, lw=1.6)
-        bx.annotate(st["label"], (xs[-1], secs[-1]), xytext=(4, 0),
-                    textcoords="offset points", color=st["color"], fontsize=7,
-                    va="center")
+                marker=st["marker"], ms=4.5, lw=1.6, label=st["label"])
     bx.set_yscale("log")
     bx.set_xlabel("candidate factors $n$")
     bx.set_ylabel("seconds to choose the experiments")
     bx.set_xticks(sizes)
-    bx.set_xlim(sizes[0] - 1, sizes[-1] + 16)
+    bx.set_xlim(sizes[0] - 1, sizes[-1] + 2)
+    # Upper left is the only region of panel B no curve passes through.
+    bx.legend(frameon=False, fontsize=7, loc="upper left", handlelength=2.4,
+              borderpad=0.1, labelspacing=0.35)
     tidy(bx)
     panel(bx, "B", "compute cost")
 
@@ -343,14 +342,12 @@ def figure5_stopping() -> None:
         succ = [100 * cols["correct"][where(cols, strategy=key, confidence_target=c)].mean()
                 for c in grid]
         ax.plot(1 - grid, means, color=st["color"], ls=st["ls"], marker=st["marker"],
-                ms=4.5, lw=1.6)
-        ax.annotate(st["label"], (1 - grid[0], means[0]), xytext=(6, 4),
-                    textcoords="offset points", color=st["color"], fontsize=7)
+                ms=4.5, lw=1.6, label=st["label"])
         bx.plot(1 - grid, succ, color=st["color"], ls=st["ls"], marker=st["marker"],
                 ms=4.5, lw=1.6)
-        bx.annotate(st["label"], (1 - grid[0], succ[0]), xytext=(6, -10),
-                    textcoords="offset points", color=st["color"], fontsize=7)
 
+    ax.legend(frameon=False, fontsize=7, loc="center right", handlelength=2.4,
+              borderpad=0.1, labelspacing=0.35)
     for axis, ylabel, title in (
         (ax, "experiments (mean)", "A"),
         (bx, "recipe recovered (%)", "B"),
