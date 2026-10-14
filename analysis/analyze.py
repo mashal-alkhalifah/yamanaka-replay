@@ -442,6 +442,47 @@ def section_10() -> None:
                   f"{wrong} when wrong{diag}")
 
 
+def section_12() -> None:
+    cols = load("12_cardinality_baselines.csv")
+    rule("Experiment 12 -- is joint inference over recipe size worth its machinery?")
+    sizes = sorted(set(cols["true_size"].tolist()))
+    methods = [m for m in ("fixed-4", "two-stage-6", "two-stage-12", "latent",
+                           "half-removal") if (cols["method"] == m).any()]
+
+    print(f"  {'method':<14}" + "".join(f"{f'true size {k:.0f}':>22}" for k in sizes))
+    print("  " + "-" * (14 + 22 * len(sizes)))
+    for m in methods:
+        line = f"  {m:<14}"
+        for k in sizes:
+            mask = where(cols, method=m, true_size=k)
+            exp = cols["n_experiments"][mask]
+            ok = cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            line += f"{f'{np.median(exp):.0f} exp · {pct(ok.mean())}':>22}"
+        print(line)
+
+    rule("What each comparator costs on the four-factor case it was built for")
+    base = cols["n_experiments"][where(cols, method="fixed-4", true_size=4)]
+    for m in methods:
+        if m == "fixed-4":
+            continue
+        other = cols["n_experiments"][where(cols, method=m, true_size=4)]
+        n = min(base.size, other.size)
+        diff, p = paired_permutation_test(other[:n], base[:n])
+        print(f"  {m:<14} {diff:+6.1f} experiments vs fixed-4   p = {fmt_p(p)}")
+
+    rule("Where the two-stage baseline loses")
+    print("  It commits to a size estimated from a fixed first-stage budget, and")
+    print("  cannot revisit that decision. Share of runs whose committed size was")
+    print("  wrong:\n")
+    for m in [x for x in methods if x.startswith("two-stage")]:
+        for k in sizes:
+            mask = where(cols, method=m, true_size=k)
+            est = cols["estimated_size"][mask]
+            wrong = float(np.mean(est != k))
+            print(f"    {m:<13} true size {k:.0f}: committed wrongly in {pct(wrong)} of runs")
+
+
 SECTIONS = {
     "05": section_05,
     "06": section_06,
@@ -449,6 +490,7 @@ SECTIONS = {
     "08": section_08,
     "09": section_09,
     "10": section_10,
+    "12": section_12,
 }
 FILES = {
     "05": "05_scale_main.csv",
@@ -457,6 +499,7 @@ FILES = {
     "08": "08_scaling.csv",
     "09": "09_prior_quality.csv",
     "10": "10_unknown_cardinality.csv",
+    "12": "12_cardinality_baselines.csv",
 }
 
 

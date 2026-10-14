@@ -1,0 +1,84 @@
+\begin{thebibliography}{11}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Takahashi and Yamanaka(2006)]{takahashi2006}
+Kazutoshi Takahashi and Shinya Yamanaka.
+\newblock Induction of pluripotent stem cells from mouse embryonic and adult
+  fibroblast cultures by defined factors.
+\newblock \emph{Cell}, 126\penalty0 (4):\penalty0 663--676, 2006.
+\newblock \doi{10.1016/j.cell.2006.07.024}.
+
+\bibitem[Lindley(1956)]{lindley1956}
+Dennis~V. Lindley.
+\newblock On a measure of the information provided by an experiment.
+\newblock \emph{The Annals of Mathematical Statistics}, 27\penalty0
+  (4):\penalty0 986--1005, 1956.
+
+\bibitem[Chaloner and Verdinelli(1995)]{chaloner1995}
+Kathryn Chaloner and Isabella Verdinelli.
+\newblock Bayesian experimental design: a review.
+\newblock \emph{Statistical Science}, 10\penalty0 (3):\penalty0 273--304, 1995.
+
+\bibitem[Zhang et~al.(2023)Zhang, Cammarata, Squires, Sapsis, and
+  Uhler]{zhang2023}
+Jiaqi Zhang, Louis Cammarata, Chandler Squires, Themistoklis~P. Sapsis, and
+  Caroline Uhler.
+\newblock Active learning for optimal intervention design in causal models.
+\newblock \emph{Nature Machine Intelligence}, 5\penalty0 (10):\penalty0
+  1066--1075, 2023.
+\newblock \doi{10.1038/s42256-023-00719-0}.
+
+\bibitem[Tosh et~al.(2025)Tosh, Tec, et~al.]{tosh2025}
+Christopher Tosh, Mauricio Tec, et~al.
+\newblock A bayesian active learning platform for scalable combination drug
+  screens.
+\newblock \emph{Nature Communications}, 16:\penalty0 156, 2025.
+\newblock \doi{10.1038/s41467-024-55287-7}.
+
+\bibitem[Dorfman(1943)]{dorfman1943}
+Robert Dorfman.
+\newblock The detection of defective members of large populations.
+\newblock \emph{The Annals of Mathematical Statistics}, 14\penalty0
+  (4):\penalty0 436--440, 1943.
+
+\bibitem[Damaschke(2006)]{damaschke2006}
+Peter Damaschke.
+\newblock Threshold group testing.
+\newblock In \emph{General Theory of Information Transfer and Combinatorics},
+  volume 4123 of \emph{Lecture Notes in Computer Science}, pages 707--718.
+  Springer, 2006.
+
+\bibitem[Chan et~al.(2013)Chan, Cai, Bakshi, Jaggi, and Saligrama]{chan2013}
+Chun~Lam Chan, Sheng Cai, Mayank Bakshi, Sidharth Jaggi, and Venkatesh
+  Saligrama.
+\newblock Near-optimal stochastic threshold group testing, 2013.
+
+\bibitem[Bshouty et~al.(2018)Bshouty, Bshouty-Hurani, Haddad, Hashem, Khoury,
+  and Sharafy]{bshouty2018}
+Nader~H. Bshouty, Vivian~E. Bshouty-Hurani, George Haddad, Thomas Hashem, Fadi
+  Khoury, and Omar Sharafy.
+\newblock Adaptive group testing algorithms to estimate the number of
+  defectives.
+\newblock In \emph{Proceedings of Algorithmic Learning Theory (ALT)}, volume~83
+  of \emph{Proceedings of Machine Learning Research}, pages 93--110, 2018.
+
+\bibitem[Norman et~al.(2019)Norman, Horlbeck, Replogle, Ge, Xu, Jost, Gilbert,
+  and Weissman]{norman2019}
+Thomas~M. Norman, Max~A. Horlbeck, Joseph~M. Replogle, Alex~Y. Ge, Albert Xu,
+  Marco Jost, Luke~A. Gilbert, and Jonathan~S. Weissman.
+\newblock Exploring genetic interaction manifolds constructed from rich
+  single-cell phenotypes.
+\newblock \emph{Science}, 365\penalty0 (6455):\penalty0 786--793, 2019.
+\newblock \doi{10.1126/science.aax4438}.
+
+\bibitem[Joung et~al.(2023)Joung, Ma, Tay, et~al.]{joung2023}
+Julia Joung, Sai Ma, Tristan Tay, et~al.
+\newblock A transcription factor atlas of directed differentiation.
+\newblock \emph{Cell}, 186\penalty0 (1):\penalty0 209--229.e26, 2023.
+\newblock PMID 36608654.
+
+\end{thebibliography}

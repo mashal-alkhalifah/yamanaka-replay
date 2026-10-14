@@ -1,0 +1,4 @@
+reference,n,one_short_median,one_short_q25,one_short_q75,frac_below_0.20,synergy_median,r2_median
+least-squares fit (biased toward additivity),40,0.767,0.521,0.91,0.0,1.003,0.641
+centroid of all conditions,40,0.906,0.561,1.014,0.0,1.016,0.284
+centroid of the single-TF conditions,40,0.816,0.511,0.96,0.0,1.132,0.347

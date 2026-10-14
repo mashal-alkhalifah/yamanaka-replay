@@ -11,8 +11,11 @@ Answer, on a simulator calibrated to the published figures: **a median of 6–10
 The repository also reports where the method fails, because that turned out to
 be the more useful half. A campaign of 6,320 replicates (`./campaign.sh`)
 **refuted two of this project's own earlier claims** and removed its most
-dangerous failure mode; both corrections are documented below rather than
-quietly dropped.
+dangerous failure mode. An audit against two measured perturbation datasets
+then **refuted the oracle's central calibration** as well. All three
+corrections are documented below rather than quietly dropped.
+
+A manuscript drawing these together is in [`paper/`](paper/).
 
 ---
 
@@ -147,7 +150,31 @@ effect by 5× still succeeds 70% of the time, while over-estimating it by 4×
 drops to 42% — and reports a confidence of 0.989 while doing so. **Calibrate
 the partial effect conservatively.**
 
-#### Correction 2: the design step does not scale as claimed
+#### Correction 2: the assumed gap response is far sharper than measurement supports
+
+The oracle assumes a pool one factor short yields 10% of the full response. The
+empirical analogue — for a measured combination, how much of its effect one of
+its constituents reproduces alone — was computed on two public datasets:
+
+| Dataset | System | Combinations | Median one-short | Below 0.20 |
+|---|---|---|---|---|
+| [Norman 2019](https://doi.org/10.1126/science.aax4438) | K562, CRISPRa | 131 pairs | **0.77** | 0 of 131 |
+| [Joung 2023](https://pubmed.ncbi.nlm.nih.gov/36608654/) | hESC, TF overexpression | 40 pairs | **0.77** | 0 of 40 |
+
+The two measured three-factor combinations give 0.80 and 1.01. Threshold-like
+effect measures (counting genes that move past a cutoff rather than a Euclidean
+norm) lower the Norman median to 0.48 and put 25% of pairs below 0.20, but no
+measure produces a median near 0.10.
+
+Since over-estimating the gap response is the error direction that fails
+silently (Correction 1), **our own calibration sits on the dangerous side**. The
+same designer informed of the true value succeeds in 98–100% of runs at every
+value tested, so the operational rule is to estimate the gap response in a
+pilot rather than assume it. Caveat: both datasets read out the transcriptome,
+while the 2006 assay reads out a rare discrete phenotype, which may be far
+sharper. Reproduce with `python analysis/real_data_audit.py`.
+
+#### Correction 3: the design step does not scale as claimed
 
 This README previously said the per-experiment design cost is independent of
 the hypothesis-space size. That is too strong. Experiment 8, over candidate
@@ -162,11 +189,16 @@ lists from 24 to 60 factors:
 | 60 | 487,635 | 133 | **58** | **159.2** | 6 |
 
 Wet-lab cost grows as roughly `n^1.8` in the candidate count, not
-logarithmically, and the saving decays from 84% to 57%; extrapolating, the two
-curves meet somewhere around 80–100 candidates. The bottleneck is not
-evaluating candidate pools but *proposing* good ones: random pools of size 2–12
-hit all four factors with probability falling as the fourth power of `n`. That
-is a fixable defect in the proposal generator rather than in the theory.
+logarithmically, and the saving decays from 84% to 57%. A classical model-free
+conjunctive search (`half_removal_search`) settles the cause: it grows as
+`n^0.4`, and the two cross at 48 candidates (26 versus 27 experiments). The
+bottleneck is not evaluating candidate pools but *proposing* good ones: random
+pools of size 2–12 hit all four factors with probability falling as the fourth
+power of `n`. That is a fixable defect in the proposal generator rather than in
+the theory. Neither method dominates: the classical search's success rate falls
+to 83% at 60 candidates, because the pool-size penalty drags its positive
+control toward the noise floor, while the Bayesian designer holds 100%
+throughout at five orders of magnitude more compute.
 
 Compute cost grows as roughly `H^1.5` in the hypothesis count. The correct
 narrow claim is that the design step is independent of **how concentrated the
@@ -329,7 +361,14 @@ experiments/
   08_scaling.py               300 runs: 24 to 60 candidates
   09_prior_quality.py       1,800 runs: prior strength x coverage x breadth
   10_unknown_cardinality.py   240 runs: fixed vs latent recipe size
+  11_classical_baseline.py    classical threshold-group-testing comparator
+  12_cardinality_baselines.py two-stage and model-free comparators
+paper/           manuscript source and bibliography
+data/
+  prepare_norman.py  turns a published .h5ad into a small pseudobulk table
 analysis/
+  real_data_audit.py  the gap assumption against measured data
+  figures.py       the manuscript figures
   stats.py         bootstrap, Wilson, paired permutation, exact McNemar, logistic
   test_stats.py    those five checked against independently known values
   analyze.py       the report; reads CSVs, runs no simulation
