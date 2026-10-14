@@ -68,7 +68,10 @@ Fourth, auditing the gap assumption against two measured combinatorial
 perturbation datasets (171 combinations, two cell systems) finds a median
 one-short response of 0.77 against the 0.10 the oracle assumes, placing the
 calibration in the error direction our own sensitivity analysis identifies as
-the dangerous one. We conclude that the gap response must be estimated per
+the dangerous one. We stress that the replay itself validates the search
+procedure, not the oracle: the oracle is calibrated to the very screen being
+replayed, so only the fourth result tests the model against data it was not
+built from. We conclude that the gap response must be estimated per
 assay rather than assumed, and that efficient experiment selection improves
 cost while degrading the detectability of model error.
 \end{abstract}
@@ -184,6 +187,19 @@ We state plainly what this study is not. The oracle is a simulator calibrated to
 summary figures, not an assay and not a fit to raw data; Section~\ref{sec:real}
 is where measured data enters, and it refutes part of the calibration. No claim
 about cellular biology follows from any result here.
+
+One inference in particular is unavailable to us, and we flag it because it is
+the natural reading of a replay. \textbf{Recovering the Yamanaka factors is not
+evidence that the oracle is right.} The oracle was built from the numbers that
+screen reported, and the recipe is a truth we planted in it; finding that recipe
+therefore tests the search procedure and nothing else. Treating the recovery as
+validation of the model would be circular. What the replay measures is the cost
+of a search strategy under a documented fitness function, against a published
+experiment count --- the same sense in which running a heuristic on a
+solved instance measures the heuristic, not the instance. Validation of the
+model happens only once in this paper, in Section~\ref{sec:real}, where its
+central parameter is compared against measurements it was not fitted to, and
+fails.
 
 \section{Results}
 
