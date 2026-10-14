@@ -508,6 +508,55 @@ failure, the operational rule follows directly: measure the gap response in a
 pilot, calibrate conservatively, and treat a designer that has not done so as
 untrustworthy regardless of what its posterior reports.
 
+\paragraph{What these experiments specify.} Read together, the results are less
+a study of one historical screen than a specification for the evaluator that any
+such search runs inside. A search procedure consumes an evaluator, and the
+questions this paper answers are the ones an evaluator must satisfy before
+searching inside it pays: its gap response must be accurate to within about a
+factor of two, with under-estimation the safer error
+(Section~\ref{sec:calibration}); it must expose uncertainty over structure, not
+only a score, because a model that cannot represent the right recipe size fails
+silently at 0.999 confidence (Section~\ref{sec:cardinality}); and its stopping
+confidence is trustworthy only to the extent its own model is
+(Section~\ref{sec:stopping}). Those are testable requirements, and they apply to
+a learned model of cell state as much as to the calibrated oracle used here.
+
+The measured data adds a fourth requirement and relaxes one assumption. An
+evaluator fitted to expression data will present a graded, near-additive
+landscape rather than the sharp threshold the 2006 assay suggests
+(Section~\ref{sec:real}), which is easier to search, not harder --- but it also
+means the gap response has to be estimated from a pilot rather than inherited
+from a published figure.
+
+\paragraph{Where the method ends and another begins.} The scaling result marks
+a boundary that matters beyond this benchmark. Exact enumeration over
+hypotheses is what makes the posterior cheap, and it is also what fails: by 60
+candidates the design step costs 159~s per run and the wet-lab saving has
+halved. A reprogramming search over the roughly 1{,}600 human transcription
+factors is three orders of magnitude past that, so the approach used here
+cannot be carried to it by tuning. What the classical comparator shows is that
+the missing ingredient is proposal generation, which is precisely what
+population-based search supplies: a set of candidates evolved from the
+currently promising ones rather than enumerated or drawn at random. The natural
+successor to this work is therefore not a larger posterior but a search whose
+proposals are generated and whose evaluator is a learned model, with the
+requirements above as its acceptance criteria.
+
+\paragraph{Next steps.} Four follow from the results, in order of what each
+would settle. First, replace the calibrated oracle with a retrospective one
+built directly from measured combinatorial data, turning every count reported
+here from a property of a model into a measurement. Second, rebuild the
+proposal distribution along the lines the classical comparator suggests and
+test whether logarithmic scaling is recovered, which is the difference between
+diagnosing the defect and repairing it. Third, make the gap response a latent
+parameter estimated during the search rather than a fixed constant, which the
+real-data audit shows is the assumption most likely to be wrong in deployment.
+Fourth, and most open: the threshold-group-testing literature parameterises its
+designs by a \emph{known} threshold, while the quantity an experimenter lacks is
+exactly that threshold. Bounds for threshold group testing with unknown $u$
+would place the cardinality result of Section~\ref{sec:cardinality} on a
+theoretical footing rather than an empirical one.
+
 \paragraph{Limitations.} The oracle is a simulator calibrated to published
 summary figures, so its numbers are properties of a stated model; the design of
 the comparisons, not the realism of the oracle, carries the conclusions. The
