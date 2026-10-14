@@ -1,4 +1,4 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{26}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -80,14 +80,30 @@ Chun~Lam Chan, Sheng Cai, Mayank Bakshi, Sidharth Jaggi, and Venkatesh
   Saligrama.
 \newblock Near-optimal stochastic threshold group testing, 2013.
 
-\bibitem[Bshouty et~al.(2018)Bshouty, Bshouty-Hurani, Haddad, Hashem, Khoury,
-  and Sharafy]{bshouty2018}
-Nader~H. Bshouty, Vivian~E. Bshouty-Hurani, George Haddad, Thomas Hashem, Fadi
-  Khoury, and Omar Sharafy.
-\newblock Adaptive group testing algorithms to estimate the number of
-  defectives.
-\newblock In \emph{Proceedings of Algorithmic Learning Theory (ALT)}, volume~83
-  of \emph{Proceedings of Machine Learning Research}, pages 93--110, 2018.
+\bibitem[Bui et~al.(2024)Bui, Chee, and Vu]{bui2024}
+Thach~V. Bui, Yeow~Meng Chee, and Van~Khu Vu.
+\newblock Efficient designs for threshold group testing without gap, 2024.
+
+\bibitem[Talamanca and Trouillon(2026)]{talamanca2026}
+Lorenzo Talamanca and Julian Trouillon.
+\newblock Combinatorial group testing for efficient scaling across biological
+  applications.
+\newblock \emph{Nature Communications}, 17:\penalty0 9146, 2026.
+\newblock \doi{10.1038/s41467-026-77055-5}.
+
+\bibitem[Edwards et~al.(2026)Edwards, De~Brouwer, Li, Lee, Hajiramezanali,
+  Biton, Mostafavi, and Scalia]{edwards2026}
+Carl Edwards, Edward De~Brouwer, Xiner Li, Namkyeong Lee, Ehsan Hajiramezanali,
+  Anne Biton, Sara Mostafavi, and Gabriele Scalia.
+\newblock Biology-in-the-loop: Amortized adaptive hit discovery in crispr
+  screens, 2026.
+
+\bibitem[Qin et~al.(2025)Qin, Wessels, Fernandez-Granda, and Hao]{qin2025}
+Jason Qin, Hans-Hermann Wessels, Carlos Fernandez-Granda, and Yuhan Hao.
+\newblock Active learning for efficient discovery of optimal gene combinations
+  in the combinatorial perturbation space.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2025.
+\newblock arXiv:2411.12010.
 
 \bibitem[Rackham et~al.(2016)]{rackham2016}
 Owen J.~L. Rackham et~al.
@@ -95,6 +111,14 @@ Owen J.~L. Rackham et~al.
   human cell types.
 \newblock \emph{Nature Genetics}, 48\penalty0 (3):\penalty0 331--335, 2016.
 \newblock \doi{10.1038/ng.3487}.
+
+\bibitem[tfc(2025)]{tfcomb2025}
+Tfcomb identifies transcription factor combinations for cellular reprogramming
+  based on single-cell multiomics data.
+\newblock \emph{Genome Research}, 35\penalty0 (6):\penalty0 1429--1439, 2025.
+\newblock \doi{10.1101/gr.279955.124}.
+\newblock Author list not reproduced here: the article's own pages print
+  contributions by initials only.
 
 \bibitem[Roohani et~al.(2022)Roohani, Huang, and Leskovec]{roohani2022}
 Yusuf Roohani, Kexin Huang, and Jure Leskovec.
@@ -108,6 +132,20 @@ Charlotte Bunne, Yusuf Roohani, Yanay Rosen, Ankit Gupta, et~al.
   Priorities and opportunities.
 \newblock \emph{Cell}, 187\penalty0 (25):\penalty0 7045--7063, 2024.
 \newblock \doi{10.1016/j.cell.2024.11.015}.
+
+\bibitem[Bi et~al.(2026)Bi, Pinilla, and Zhu]{bi2026}
+Jia Bi, Samuel Pinilla, and Chenyang Zhu.
+\newblock Held-out evidence resolves follow-up measurement decisions in
+  biological screens, 2026.
+
+\bibitem[Bshouty et~al.(2018)Bshouty, Bshouty-Hurani, Haddad, Hashem, Khoury,
+  and Sharafy]{bshouty2018}
+Nader~H. Bshouty, Vivian~E. Bshouty-Hurani, George Haddad, Thomas Hashem, Fadi
+  Khoury, and Omar Sharafy.
+\newblock Adaptive group testing algorithms to estimate the number of
+  defectives.
+\newblock In \emph{Proceedings of Algorithmic Learning Theory (ALT)}, volume~83
+  of \emph{Proceedings of Machine Learning Research}, pages 93--110, 2018.
 
 \bibitem[Norman et~al.(2019)Norman, Horlbeck, Replogle, Ge, Xu, Jost, Gilbert,
   and Weissman]{norman2019}

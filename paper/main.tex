@@ -130,24 +130,55 @@ decorative: it supplies a theoretical yardstick for the achievable test count
 and classical algorithms as baselines, and both change the conclusions one would
 otherwise draw.
 
-\paragraph{Related work.} Four literatures meet here. Group testing supplies the
-problem class and its bounds, from the original pooled-screen argument
-\citep{dorfman1943} through the modern information-theoretic treatment
-\citep{aldridge2019} to the threshold variants that match this assay
-\citep{damaschke2006, chan2013} and to the sub-problem of an unknown number of
-defectives \citep{bshouty2018}. Bayesian experimental design supplies the
-criterion \citep{lindley1956, chaloner1995, rainforth2024}. Applied to
-perturbation biology, it has been used to choose genetic interventions
-\citep{zhang2023} and combination drug screens \citep{tosh2025}, both evaluated
-on predictive accuracy over collected data rather than against a documented
-discovery. A parallel line predicts rather than designs: ranking reprogramming
-factors from expression and network data \citep{rackham2016}, and predicting the
-outcome of unseen multi-gene perturbations \citep{roohani2022} --- models that
-could eventually replace the oracle used here, which is the direction the
-virtual-cell programme points \citep{bunne2024}. What is missing from all of
-them, and supplied here, is the counterfactual against a historical experiment
-count, the regime boundary against a classical algorithm, and a check of the
-assay model's central assumption against measured data.
+\paragraph{Related work.} Four literatures meet here, and the closest work in
+each sits a measurable step away from this one.
+
+\emph{Group testing} supplies the problem class and its bounds, from the
+original pooled-screen argument \citep{dorfman1943} through the modern
+information-theoretic treatment \citep{aldridge2019}. The variant that matches
+this assay is threshold group testing \citep{damaschke2006} in its stochastic
+form \citep{chan2013}, and designs for it continue to improve
+\citep{bui2024}. Those designs are parameterised by the threshold $u$: it is
+given, and the algorithm is built around it. Here $u = |R|$ is exactly what the
+experimenter does not know, which is the gap Section~\ref{sec:cardinality}
+addresses. Group testing is also being applied to biology right now
+\citep{talamanca2026}, but in its disjunctive form --- a pool is positive if it
+contains any positive item --- and largely non-adaptively, whereas a
+reprogramming pool is positive only if it contains \emph{all} of the recipe.
+
+\emph{Bayesian experimental design} supplies the criterion
+\citep{lindley1956, chaloner1995, rainforth2024}. Applied to perturbation
+biology, it has been used to choose genetic interventions \citep{zhang2023} and
+combination drug screens \citep{tosh2025}, and recent work learns an acquisition
+policy amortised over more than a thousand historical CRISPR screens
+\citep{edwards2026} or selects gene pairs with a predictive model in the loop
+\citep{qin2025}. These are evaluated on hit-recovery or predictive accuracy at a
+fixed budget fraction. None asks the counterfactual question of this paper: how
+many experiments a documented discovery would have taken, measured against the
+count that discovery actually consumed.
+
+\emph{Prediction rather than design} is the third line: ranking reprogramming
+factors from expression and network data \citep{rackham2016}, scoring
+transcription-factor combinations from single-cell multiomics
+\citep{tfcomb2025}, and predicting outcomes of unseen multi-gene perturbations
+\citep{roohani2022}. The closest of these even frames its accuracy in
+experiment-count terms --- a cocktail ranked fiftieth implies fifty experiments
+--- but the ranking is static: it does not condition on results as they arrive,
+and the count is a corollary of the ranking rather than a measured search cost.
+Such models are nonetheless the natural replacement for the oracle used here,
+which is the direction the virtual-cell programme points \citep{bunne2024}.
+
+\emph{Validation of adaptive policies} is the fourth. Held-out evaluations of
+selective measurement rules in biological screens have found that the evidence
+often fails to justify adopting them over a fixed plan \citep{bi2026}, a
+finding that sits naturally beside Section~\ref{sec:stopping}: efficiency and
+error detectability pull in opposite directions.
+
+Against that background the contributions of this paper are the counterfactual
+against a historical experiment count, the regime boundary against a classical
+algorithm, the treatment of an unknown threshold in a threshold-group-testing
+assay, and a check of the assay model's central assumption against measured
+data.
 
 We state plainly what this study is not. The oracle is a simulator calibrated to
 summary figures, not an assay and not a fit to raw data; Section~\ref{sec:real}
