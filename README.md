@@ -324,7 +324,7 @@ are infrastructure.
 ## Reproducing
 
 ```bash
-git clone https://github.com/OWNER/yamanaka-replay
+git clone https://github.com/mashal-alkhalifah/yamanaka-replay
 cd yamanaka-replay
 pip install -r requirements.txt
 ./reproduce.sh      # every README figure from experiments 01-04, under a minute
