@@ -56,24 +56,30 @@ results. First, information-gain design recovers the hidden recipe in a median
 of 10 experiments against 61, is cheaper in 300 of 300 paired replicates, and
 matches the known $O(g^2 d \log n)$ order for the framework; an ablation with
 identical inference but random pools needs 44, locating the gain in experiment
-selection rather than in inference. Second, the advantage is regime-specific: a
-classical model-free conjunctive search is twice as expensive at 24 candidates
-but overtakes the Bayesian designer at 48, because random pool proposals stop
-finding the recipe as the candidate list grows. Third, the method's only
-structural failure is an assumed recipe cardinality, which fails
-\emph{symmetrically and silently} --- zero success at 0.999 reported confidence
-for both smaller and larger true recipes --- and is removed by treating
-cardinality as a latent variable at a cost of one additional experiment.
-Fourth, auditing the gap assumption against two measured combinatorial
-perturbation datasets (171 combinations, two cell systems) finds a median
-one-short response of 0.77 against the 0.10 the oracle assumes, placing the
-calibration in the error direction our own sensitivity analysis identifies as
-the dangerous one. We stress that the replay itself validates the search
-procedure, not the oracle: the oracle is calibrated to the very screen being
-replayed, so only the fourth result tests the model against data it was not
-built from. We conclude that the gap response must be estimated per
-assay rather than assumed, and that efficient experiment selection improves
-cost while degrading the detectability of model error.
+selection rather than in inference. Second, the scaling limit we initially
+reported --- a classical model-free conjunctive search overtaking the Bayesian
+designer at 48 candidates --- is a property of the proposal distribution and
+not of the method: holding the scoring rule, posterior, recipes and seeds
+fixed and changing only which pools may be scored drops the growth exponent
+from $n^{1.6}$ to $n^{0.43}$, matching the classical algorithm's $n^{0.36}$ at
+a third of its cost and at 100\% recovery where the classical search falls to
+83\%. Third, the method's only structural failure is an assumed recipe
+cardinality, which fails \emph{symmetrically and silently} --- zero success at
+0.999 reported confidence for both smaller and larger true recipes --- and is
+removed by treating cardinality as a latent variable at a cost of one
+additional experiment. Fourth, auditing the gap assumption against two measured
+combinatorial perturbation datasets (171 combinations, two cell systems) finds
+a median one-short response of 0.77 against the 0.10 the oracle assumes; re-run
+on that measured structure, the designer as calibrated here recovers the recipe
+in 2.5\% of runs and stops on its own confidence rule, at mean posterior
+confidence 0.991, in almost every failure, while the same designer informed of
+the true gap response recovers 99\%. We stress that the replay itself validates
+the search procedure, not the oracle: the oracle is calibrated to the very
+screen being replayed, so only the fourth result tests the model against data
+it was not built from. We conclude that the gap response must be estimated per
+assay rather than assumed --- it is a precondition for validity, not a
+refinement --- and that efficient experiment selection improves cost while
+degrading the detectability of model error.
 \end{abstract}
 
 \section*{Author summary}
@@ -86,14 +92,21 @@ simulator calibrated to the original paper's numbers, about ten instead of
 sixty-one. More useful than that number is where the approach breaks. The
 problem turns out to be a known mathematical one --- threshold group testing ---
 which supplies both a theoretical yardstick and a classical algorithm as a
-competitor; that competitor wins once the candidate gene list passes about
-forty, so the Bayesian approach earns its complexity only in the regime the
-historical screen occupied. We also find a failure that matters for anyone
-deploying these methods: if the number of genes in the recipe is fixed in
-advance and that number is wrong, the search fails while reporting
-near-certainty, whether the true recipe is larger or smaller. Finally, we check
-the model's central assumption against real measurements and find it wrong in
-the direction that causes exactly this kind of confident failure.
+competitor. That competitor appeared to win once the candidate gene list passed
+about forty, which would have confined the adaptive approach to the regime the
+historical screen occupied; tracing the cause showed instead that the adaptive
+designer was being offered the wrong experiments to choose among, and supplying
+the right ones restores its advantage at every list length we tested. We also
+find a failure that matters for anyone deploying these methods: if the number
+of genes in the recipe is fixed in advance and that number is wrong, the search
+fails while reporting near-certainty, whether the true recipe is larger or
+smaller. Finally, we check the model's central assumption against real
+measurements, find it wrong in the direction that causes exactly this kind of
+confident failure, and then run the method on the corrected landscape: it
+recovers the right answer in one run in forty while reporting itself almost
+certain. The lesson is that an adaptive method is only as trustworthy as the
+assay model it carries, and that this particular parameter has to be measured
+before the method is used, not assumed from a previous study.
 \normalsize
 
 \section{Introduction}
@@ -240,7 +253,7 @@ replacing a $\Theta(n)$ protocol with one operating at the model's known order.
 That is itself the point: the gap between what the 2006 screen spent and what
 was achievable was derivable from theory contemporaneous with it.
 
-\subsection{The advantage is regime-specific}
+\subsection{An apparent regime boundary}
 \label{sec:scaling}
 
 \begin{figure}[t]
@@ -269,7 +282,9 @@ problem, but in proposal generation. Random pools of size 2--12 contain all four
 essential factors with probability falling as $n^{-4}$, so as the list grows the
 designer evaluates information gain ever more accurately over proposals ever
 less likely to be informative. The remedy is a better proposal distribution, and
-the classical algorithm is in effect one.
+the classical algorithm is in effect one --- a diagnosis we test directly in
+Section~\ref{sec:proposals}, where it proves correct and the boundary
+disappears.
 
 Neither method dominates. The classical search pays for its simplicity in
 reliability: its success rate falls from 100\% to 83\% as $n$ grows to 60, for a
@@ -290,6 +305,61 @@ appears flat in $n$ only because prior quality is held constant, up-weighting
 eight factors regardless of $n$. A longer candidate list implies a less
 informative prior, so that curve is an upper bound conditional on prior quality,
 not a prediction.
+
+\subsection{The boundary is a property of the proposals, not the method}
+\label{sec:proposals}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig9_proposals.pdf}
+  \caption{\textbf{Changing only which pools may be scored.} (A) Median
+  wet-lab cost against candidate-list size for the published proposal
+  generator, the structured one, and the classical half-removal search of
+  Section~\ref{sec:scaling}. The scoring rule, posterior, oracle, recipes and
+  seeds are identical across the two adaptive curves, as is the number of pools
+  scored per round. (B) The design-time price of the change, which is negative:
+  the structured proposals need fewer rounds than their larger pools cost.}
+  \label{fig:proposals}
+\end{figure}
+
+Section~\ref{sec:scaling} attributed the adaptive designer's poor scaling to its
+proposal distribution rather than to its inference. That attribution was an
+interpretation of a null result and deserved a direct test, since a method's
+authors are poorly placed to decide that its deficiency is the benign kind.
+
+We therefore constructed a second proposal generator and changed nothing else.
+It adds the three families the original lacked. \emph{Removal pools}: the
+factors carrying appreciable posterior mass, less a random half, quarter or
+eighth of them --- precisely the queries by which half-removal halves its live
+set, and absent from the original proposals at every list length.
+\emph{Complements of ranked prefixes}: a prefix of the marginal ranking asks
+whether the recipe lies in the top $k$, and its complement asks the same
+question from the side that is more informative when the answer is no.
+\emph{Scale-aware random pools}: sizes drawn log-uniformly between the recipe
+size and the full candidate set, rather than from a fixed window of 2--12.
+Both generators return the same number of pools per round, so no difference can
+be bought with a wider search.
+
+The diagnosis holds (Fig.~\ref{fig:proposals}). The growth exponent falls from
+$n^{1.61}$ to $n^{0.43}$, against $n^{0.36}$ for the classical search, and the
+median cost at 60 candidates falls from 48 experiments to 15 --- below the
+classical algorithm's 27 rather than above it. The saving is zero at 24
+candidates (0.6 experiments, $p = 0.29$), where the original window already
+covered a usable fraction of the space, and grows monotonically with list
+length: 5.5 at 32, 8.6 at 40, 19.7 at 48 and 34.2 at 60 experiments per run,
+all paired on identical recipes and seeds, all $p < 10^{-3}$. Recovery remains
+100\% at every size, where the classical search declines to 83\% at 60 for the
+physical reason given above.
+
+Two qualifications. The comparison is confined to the hypothesis spaces exact
+enumeration can hold, so it does not show that the Bayesian designer scales
+indefinitely; the compute wall of Section~\ref{sec:scaling} is untouched, and
+remains the binding constraint past about 60 candidates. And the structured
+generator was designed after seeing the failure it repairs, which makes it an
+explanation of that failure rather than an independent prediction. What the
+experiment establishes is narrower and sufficient: the regime boundary we
+reported was contingent on an implementation choice, not a property of
+information-gain design, and should not be cited as the latter.
 
 \subsection{Model error: absent signal versus wrong signal}
 \label{sec:calibration}
@@ -488,6 +558,108 @@ assumption for expression-level objectives and constrains, rather than settles,
 the phenotype case. Settling it requires a combinatorial screen with a
 phenotypic readout, which to our knowledge does not exist at the scale needed.
 
+\subsection{The designer run on the measured gap structure}
+\label{sec:measured-gap}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig7_measured_gap.pdf}
+  \caption{\textbf{Recovery when the gap response is drawn from measurement
+  rather than assumed.} (A) Recipe recovered over 200 paired runs per arm, with
+  Wilson intervals, under both fall-off shapes. The designer carrying this
+  study's published calibration recovers the recipe in 2.5\% of runs and stops
+  on its own confidence rule in almost all of the failures. Told the true
+  $\rho$, the same designer returns to 99\%. (B) The distribution of $\rho$
+  drawn per run, against the value the oracle assumes.}
+  \label{fig:measuredgap}
+\end{figure}
+
+Section~\ref{sec:real} established that $\rho = 0.10$ is far sharper than
+measurement supports, and inferred from Section~\ref{sec:calibration} that a
+designer calibrated this way \emph{would be expected} to fail confidently. An
+inference of that weight should be measured rather than inferred. We therefore
+re-ran the search with $\rho$ drawn per replicate from the 131 measured Norman
+ratios and held fixed across arms, so that every method meets the same
+landscape (Fig.~\ref{fig:measuredgap}).
+
+The expectation is confirmed, and more sharply than anticipated. Under the gap
+fall-off the designer as published recovers the recipe in \textbf{2.5\%} of 200
+runs (95\% Wilson interval 1--6\%) against 99.0\% for the same designer informed
+of $\rho$ (exact McNemar $p < 10^{-4}$). The failures are not budget
+exhaustions: no run reached the cap, the median cost was 9 experiments against
+10 for the correctly calibrated reference, and the mean posterior confidence on
+runs that ended \emph{wrong} was \textbf{0.991}. The practitioner receives a
+four-factor recipe, a tight posterior and no indication of error.
+
+Three consequences follow. First, the fault is in the calibration rather than
+the inference: the matched designer costs 12 experiments against 10 at the
+assumed $\rho$, so the headline saving survives the realistic landscape
+\emph{conditional on knowing} $\rho$. Estimating the gap response is therefore
+not a refinement but a precondition, and the natural construction --- carrying
+$\rho$ as a latent parameter updated alongside the recipe --- is the obvious
+next step rather than an optional one.
+
+Second, the classical algorithm is not a fallback. Half-removal recovers the
+recipe in 0.0\% of runs with its assumed threshold and 8.5\% with the threshold
+rebuilt at the true $\rho$: when a pool one factor short yields 80\% of a
+complete one, no positivity threshold separates them, and being told the truth
+does not help because the information is not in the readout. The 2006 protocol
+reaches 28.5\%, worse than the matched designer by a wide margin but without a
+confidence claim to be wrong about --- it fails audibly.
+
+Third, the conclusion is not an artefact of the sharp fall-off. Under a
+geometric shape, where efficiency decays as $\rho$ per missing factor rather
+than vanishing beyond one, the published designer recovers nothing at all
+(0/200) while the matched designer reaches 88.0\% at a median of 16 experiments
+and a mean of 35. Pair measurements constrain the one-short step and say nothing
+about what lies beyond it, so both shapes are reported.
+
+\subsection{Discovery against measured data, with no simulator}
+\label{sec:retrospective}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig8_retrospective.pdf}
+  \caption{\textbf{Sequential discovery where every query returns a
+  measurement.} (A) Best condition found so far as a fraction of the strongest
+  measured combination, median over 40 replicates with interquartile band. (B)
+  Conditions profiled before reaching that combination; the annotation gives
+  how many replicates reached it at all, without which the box is not
+  comparable.}
+  \label{fig:retrospective}
+\end{figure}
+
+Experiment~\ref{sec:measured-gap} grounds one parameter of the oracle in
+measurement, but still queries a simulator. The strongest available test removes
+it. We built an oracle over \citet{norman2019} that answers only for conditions
+the authors actually profiled --- 105 singles, 131 pairs and one control ---
+returning the magnitude of the measured pseudobulk shift against control,
+perturbed by the dataset's own disagreement across two random halves of the gene
+panel (median relative discrepancy 0.049). A condition that was not profiled
+raises an error rather than being interpolated, since an interpolated answer
+would reinstate the simulation the construction exists to remove.
+
+That restriction changes the task. With no pools beyond pairs there is nothing
+to design, so this is sequential discovery within a measured library rather than
+threshold group testing: find the strongest combination while profiling as few
+conditions as possible. It tests the half of the claim that survives --- that
+choosing the next experiment from a model beats choosing it by protocol.
+
+The strongest measured combination is \texttt{CEBPA+JUN}. A surrogate fitting
+pair response on its constituents' measured singles, queried by
+upper-confidence score, reaches it in a median of 68 conditions in 40 of 40
+replicates, against 108 for a singles-first protocol and 84 for random order,
+which reached it at all in only 13 of 40. At a budget of 20 conditions the
+surrogate attains 83\% of the target against 59\% for the protocol (paired
+permutation, $p < 10^{-4}$; Fig.~\ref{fig:retrospective}).
+
+The singles-first row should be read as biology before method. A measured
+one-short ratio of 0.77 is precisely what makes ``profile the singles, then the
+pairs built from the best of them'' nearly sufficient on this landscape. The
+simulated assay, in which a single factor yields nothing at all, is the
+\emph{easier} of the two problems rather than the harder one --- a point that
+the simulation-only version of this study could not have reached.
+
 \section{Discussion}
 
 Four conclusions survive the controls, and they are narrower than the headline
@@ -500,13 +672,17 @@ operated at $\Theta(n)$. The contribution is not the adaptive designer but the
 quantification: how much of that theoretical gap is realisable under the assay's
 noise, with the historical count as the reference.
 
-The Bayesian apparatus earns its place only in a regime. At the scale the
-historical screen occupied it is twice as efficient as a classical conjunctive
-search; beyond 48 candidates it is worse in experiments and five orders of
-magnitude worse in compute, while remaining more reliable. Any application to
-larger candidate lists should either repair the proposal distribution, plausibly
-by borrowing the classical algorithm's structure, or use the classical algorithm
-with the Bayesian machinery reserved for the final discrimination.
+The Bayesian apparatus does earn its place, but the reason is not the one we
+first reported. Measured against a classical conjunctive search it appeared to
+lose beyond 48 candidates; giving it the classical algorithm's own queries to
+score removes the crossing entirely and leaves it at a third of the cost and a
+higher recovery rate at every list length tested
+(Section~\ref{sec:proposals}). The episode is worth stating plainly, because
+the first version of this analysis would have been published as a regime
+claim and the regime was an artefact. What survives is a compute boundary
+rather than a statistical one: the design step still costs 89~s per run at 60
+candidates against under a millisecond for the classical search, and exact
+enumeration remains the binding constraint.
 
 For deployment, the cardinality result is the most actionable: a parametric
 designer that fixes recipe size fails silently and symmetrically, the standard
@@ -516,13 +692,27 @@ the error visible. Given the general pattern that efficient design suppresses
 the signature of model error, cheap diagnostics of this kind are not optional
 extras.
 
-Finally, the real-data audit turns the study's main caveat into a result. The
-assumption that a one-short pool yields a tenth of the full response is not
-supported in either measured system; the measured value is close to 0.8. Since
-over-estimating that response is the error direction that produces confident
-failure, the operational rule follows directly: measure the gap response in a
-pilot, calibrate conservatively, and treat a designer that has not done so as
-untrustworthy regardless of what its posterior reports.
+Finally, the real-data audit turns the study's main caveat into a result, and
+then into a verdict on the study's own artefact. The assumption that a one-short
+pool yields a tenth of the full response is not supported in either measured
+system; the measured value is close to 0.8. Running the designer on that
+structure rather than reasoning about it (Section~\ref{sec:measured-gap}) gives
+2.5\% recovery at a mean posterior confidence of 0.991 on the failures. The
+operational rule follows without hedging: measure the gap response in a pilot,
+calibrate conservatively, and treat a designer that has not done so as
+untrustworthy regardless of what its posterior reports --- including the one
+distributed with this paper, which should be run with $\rho$ estimated and not
+with the value we calibrated.
+
+That conclusion also sets the next piece of work. If $\rho$ must be known and
+cannot be assumed, the principled construction is to carry it as a latent
+parameter updated alongside the recipe, exactly as recipe size already is
+(Section~\ref{sec:cardinality}). The overlap-class collapse that makes both the
+fixed-size and latent-size designers cheap extends to a discretised $\rho$ at
+the cost of one more index, so the machinery is in place; what is not yet
+established is how many experiments the joint inference costs, and whether a
+pilot that estimates $\rho$ separately is cheaper than learning it in the loop.
+We state this as the open question rather than claiming the extension works.
 
 \paragraph{What these experiments specify.} Read together, the results are less
 a study of one historical screen than a specification for the evaluator that any
@@ -545,18 +735,20 @@ means the gap response has to be estimated from a pilot rather than inherited
 from a published figure.
 
 \paragraph{Where the method ends and another begins.} The scaling result marks
-a boundary that matters beyond this benchmark. Exact enumeration over
-hypotheses is what makes the posterior cheap, and it is also what fails: by 60
-candidates the design step costs 159~s per run and the wet-lab saving has
-halved. A reprogramming search over the roughly 1{,}600 human transcription
-factors is three orders of magnitude past that, so the approach used here
-cannot be carried to it by tuning. What the classical comparator shows is that
-the missing ingredient is proposal generation, which is precisely what
-population-based search supplies: a set of candidates evolved from the
-currently promising ones rather than enumerated or drawn at random. The natural
-successor to this work is therefore not a larger posterior but a search whose
-proposals are generated and whose evaluator is a learned model, with the
-requirements above as its acceptance criteria.
+a boundary that matters beyond this benchmark, though not the boundary we
+first drew. Exact enumeration over hypotheses is what makes the posterior cheap
+and it is also what fails: at 60 candidates the design step costs 89~s per run
+even with the structured proposals, and the hypothesis count grows as $n^4$. A
+reprogramming search over the roughly 1{,}600 human transcription factors is
+three orders of magnitude past that, so the approach used here cannot be
+carried to it by tuning. Section~\ref{sec:proposals} is suggestive about what
+replaces it: the single change that recovered logarithmic-order growth was to
+generate proposals from the current posterior's structure rather than draw them
+at random, which is what population-based search does by construction --- a set
+of candidates derived from the currently promising ones. The natural successor
+is therefore a search whose proposals are generated, whose posterior is
+approximate rather than enumerated, and whose evaluator is a learned model,
+with the requirements above as its acceptance criteria.
 
 \paragraph{Next steps.} Four follow from the results, in order of what each
 would settle. First, replace the calibrated oracle with a retrospective one
@@ -650,6 +842,44 @@ carries the same calibration error as the Bayesian designer.
 \textbf{Two-stage cardinality estimation} spends a fixed budget (6 or 12
 experiments) estimating the count, then commits to it \citep{bshouty2018}.
 \textbf{Latent-cardinality design} carries size and identity in one posterior.
+
+\textbf{Proposal generators.} The published generator draws pools uniformly at
+sizes 2--12 and appends short prefixes of the marginal factor ranking. The
+structured generator of Section~\ref{sec:proposals} returns the same number of
+pools and adds: removal pools, formed by deleting a random half, quarter or
+eighth of the factors with posterior mass above $10^{-4}$; the complement of
+each ranked prefix as well as the prefix; and random pools whose sizes are
+log-uniform on $[d, n]$. Expected information gain is computed as before, over
+the full posterior. Scoring a pool requires the overlap $|S \cap h|$ for every
+hypothesis; because $|S \cap h| = |h| - |\bar{S} \cap h|$, this is counted over
+whichever side of the pool is smaller, which bounds the work at $n/2$ columns
+and is exact.
+
+\subsection{Measurement-grounded oracles}
+
+\textbf{Empirical gap oracle.} Identical to the colony oracle except that
+$\rho$ is drawn per replicate from the 131 one-short ratios measured in
+\citet{norman2019} and held fixed across arms within a replicate. Two fall-off
+shapes are run: \emph{gap}, in which a pool one factor short yields $\rho$ and
+anything less yields nothing, and \emph{geometric}, in which efficiency is
+$\rho^{\,d - |S \cap R|}$. Carrying $\rho$ from a transcriptional response
+magnitude to a colony rate assumes response magnitude is monotone in assay
+yield. That assumption is not testable with this data and is the hinge on which
+Section~\ref{sec:measured-gap} turns.
+
+\textbf{Retrospective oracle.} Answers only for conditions
+\citet{norman2019} profiled --- 105 singles, 131 pairs, one control --- and
+raises an error otherwise, so no value is ever interpolated. The phenotype is
+$\lVert x_p - x_0 \rVert$, chosen for being untuned: a score selected to reward
+a particular biology would make the search succeed by construction.
+Observation noise is multiplicative lognormal whose scale is the dataset's own
+split-half discrepancy, estimated by scoring every condition on two random
+halves of the gene panel, rescaling, and taking the median relative difference
+(0.049). The surrogate arm fits $\log$ pair response on its two constituents'
+$\log$ single responses by ridge regression with the constituents entered in
+sorted order, and selects the unprofiled condition maximising
+$\mu + 1.5\sigma$, with $\sigma$ inflated for conditions whose singles are not
+yet profiled.
 
 \subsection{Campaign and statistics}
 

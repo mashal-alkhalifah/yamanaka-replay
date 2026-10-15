@@ -269,3 +269,113 @@
     size 5, fixed-4  confidence -- when right, 0.987 when wrong
     size 5, latent   confidence 0.993 when right, -- when wrong
 
+==============================================================================
+  Experiment 12 -- is joint inference over recipe size worth its machinery?
+==============================================================================
+  method                   true size 3           true size 4           true size 5
+  --------------------------------------------------------------------------------
+  fixed-4                 9 exp · 0.0%       10 exp · 100.0%         18 exp · 0.0%
+  two-stage-6            9 exp · 80.0%        10 exp · 46.7%        17 exp · 13.3%
+  two-stage-12         12 exp · 100.0%        12 exp · 93.3%        17 exp · 60.0%
+  latent                9 exp · 100.0%       11 exp · 100.0%       17 exp · 100.0%
+  half-removal         17 exp · 100.0%       20 exp · 100.0%       22 exp · 100.0%
+
+==============================================================================
+  What each comparator costs on the four-factor case it was built for
+==============================================================================
+  two-stage-6      -0.5 experiments vs fixed-4   p = 0.5184
+  two-stage-12     +1.7 experiments vs fixed-4   p = 0.0053
+  latent           +0.5 experiments vs fixed-4   p = 0.5252
+  half-removal     +9.7 experiments vs fixed-4   p = < 1e-4
+
+==============================================================================
+  Where the two-stage baseline loses
+==============================================================================
+  It commits to a size estimated from a fixed first-stage budget, and
+  cannot revisit that decision. Share of runs whose committed size was
+  wrong:
+
+    two-stage-6   true size 3: committed wrongly in 20.0% of runs
+    two-stage-6   true size 4: committed wrongly in 53.3% of runs
+    two-stage-6   true size 5: committed wrongly in 86.7% of runs
+    two-stage-12  true size 3: committed wrongly in 0.0% of runs
+    two-stage-12  true size 4: committed wrongly in 6.7% of runs
+    two-stage-12  true size 5: committed wrongly in 40.0% of runs
+
+==============================================================================
+  Experiment 13 -- the designer under measured gap structure
+==============================================================================
+  rho drawn from 200 Norman ratios: median 0.77, IQR 0.62-1.02
+  the published oracle assumes 0.10
+
+  fall-off shape: gap
+    method                             median    mean             success   silent
+    Adaptive at the assumed rho=0.10       10    10.4      99.0% [96-100]     0.0%
+    Adaptive, published calibration         9    10.4          2.5% [1-6]    97.5%
+    Adaptive, told the true rho            12    11.8      99.0% [96-100]     1.0%
+    Half-removal, assumed threshold        16    15.6          0.0% [0-2]     0.0%
+    Half-removal, matched threshold        20    17.5         8.5% [5-13]     0.0%
+    Historical protocol (2006)             61    61.0       28.5% [23-35]     0.0%
+
+  fall-off shape: geometric
+    method                             median    mean             success   silent
+    Adaptive, published calibration         5     6.1          0.0% [0-2]   100.0%
+    Adaptive, told the true rho            16    35.4       88.0% [83-92]     1.5%
+    Half-removal, assumed threshold         7    10.7          0.0% [0-2]     0.0%
+    Half-removal, matched threshold        16    17.4         7.0% [4-11]     0.0%
+    Historical protocol (2006)             61    61.0       28.0% [22-35]     0.0%
+
+  gap: published calibration 2.5% vs matched 99.0% success, exact McNemar < 1e-4
+  geometric: published calibration 0.0% vs matched 88.0% success, exact McNemar < 1e-4
+
+  A silent failure is not a hedged one: under the published calibration the
+  mean final confidence on runs that ended wrong was 0.991.
+
+==============================================================================
+  Experiment 14 -- retrospective discovery on measured data
+==============================================================================
+  Every query returns a measured Norman condition; nothing is simulated.
+
+    arm               found best  median tests   at 20 tests   at 60 tests
+    random                 13/40            84         74.4%         86.1%
+    singles-first          40/40           108         59.3%         86.1%
+    surrogate              40/40            68         83.3%         92.1%
+    exhaustive               1/1           236                            
+
+  At a 20-experiment budget the surrogate reaches 83% of the best measured combination against
+  59% for the singles-first protocol: difference 20 points, < 1e-4.
+  Read this as a statement about the landscape as much as the method:
+  the measured one-short ratio of 0.77 is exactly what makes a singles-first
+  protocol nearly sufficient here, and what makes the simulated assay
+  (where a single factor yields nothing) the easier problem of the two.
+
+==============================================================================
+  Experiment 15 -- proposal generator ablation
+==============================================================================
+  Scoring rule, posterior, oracle, recipes and seeds all held fixed;
+  only the set of pools the designer may score changes.
+
+     cands│  original  success   s/run│  structured  success   s/run│  half-removal  success
+    --------------------------------------------------------------------------------------------
+        24│        10   100.0%     0.4│          10   100.0%     0.3│            20   100.0%
+        32│        16   100.0%     2.2│          11   100.0%     1.5│            22    96.7%
+        40│        19   100.0%     6.2│          11   100.0%     4.6│            24    96.7%
+        48│        27   100.0%    20.8│          13   100.0%    13.4│            26    93.3%
+        60│        48   100.0%   172.9│          15   100.0%    88.8│            27    83.3%
+
+==============================================================================
+  Growth rates (exponent of median cost against candidate count)
+==============================================================================
+  adaptive, original      1.61
+  adaptive, structured    0.43
+  half-removal (exp 11)     0.36
+
+  Paired comparison at each size (same recipe, same seed):
+     24 candidates: structured saves    0.6 experiments on average, 0.2920
+     32 candidates: structured saves    5.5 experiments on average, 0.0001
+     40 candidates: structured saves    8.6 experiments on average, < 1e-4
+     48 candidates: structured saves   19.7 experiments on average, < 1e-4
+     60 candidates: structured saves   34.2 experiments on average, 0.0006
+
+  Structured proposals are at or below half-removal's cost at every size tested.
+

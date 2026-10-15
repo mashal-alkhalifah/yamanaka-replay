@@ -12,8 +12,20 @@ The repository also reports where the method fails, because that turned out to
 be the more useful half. A campaign of 6,320 replicates (`./campaign.sh`)
 **refuted two of this project's own earlier claims** and removed its most
 dangerous failure mode. An audit against two measured perturbation datasets
-then **refuted the oracle's central calibration** as well. All three
-corrections are documented below rather than quietly dropped.
+then **refuted the oracle's central calibration** as well.
+
+Two of those corrections have since been carried through to their conclusion.
+Running the designer on the *measured* gap structure rather than reasoning about
+it shows the code as published **recovers the recipe in 2.5% of runs while
+reporting 0.991 confidence** — so ρ must be measured, not inherited
+([Correction 2](#correction-2-the-assumed-gap-response-is-far-sharper-than-measurement-supports)).
+And the scaling limit that forced the headline down to a regime claim turned out
+to be **the proposal generator, not the method**: supplying the right pools to
+score drops the growth exponent from `n^1.6` to `n^0.43` and removes the
+crossover entirely
+([Correction 3a](#correction-3a-the-regime-boundary-was-the-proposal-generator-and-it-is-gone)).
+
+All corrections are documented below rather than quietly dropped.
 
 A manuscript drawing these together is in [`paper/`](paper/).
 
@@ -167,12 +179,79 @@ norm) lower the Norman median to 0.48 and put 25% of pairs below 0.20, but no
 measure produces a median near 0.10.
 
 Since over-estimating the gap response is the error direction that fails
-silently (Correction 1), **our own calibration sits on the dangerous side**. The
-same designer informed of the true value succeeds in 98–100% of runs at every
-value tested, so the operational rule is to estimate the gap response in a
-pilot rather than assume it. Caveat: both datasets read out the transcriptome,
-while the 2006 assay reads out a rare discrete phenotype, which may be far
-sharper. Reproduce with `python analysis/real_data_audit.py`.
+silently (Correction 1), **our own calibration sits on the dangerous side**.
+Caveat: both datasets read out the transcriptome, while the 2006 assay reads out
+a rare discrete phenotype, which may be far sharper. Reproduce with
+`python analysis/real_data_audit.py`.
+
+##### What happens when the method is actually run on that structure
+
+Correction 2 stood as a caveat for one revision too long. Experiment 13 stops
+describing the risk and measures it: ρ is drawn per run from the 131 measured
+Norman ratios and held fixed across arms, 200 runs each.
+
+| ρ fall-off | Method | Median | Recipe recovered | Confident **and wrong** |
+|---|---|---|---|---|
+| gap | Adaptive at the assumed ρ = 0.10 | 10 | 99.0% | 0% |
+| gap | **Adaptive, this repository as published** | 9 | **2.5%** | **97.5%** |
+| gap | Adaptive, told the true ρ | 12 | **99.0%** | 1.0% |
+| gap | Half-removal, assumed threshold | 16 | 0.0% | — |
+| gap | Half-removal, matched threshold | 20 | 8.5% | — |
+| gap | Historical protocol (2006) | 61 | 28.5% | — |
+| geometric | Adaptive, as published | 5 | **0.0%** | **100%** |
+| geometric | Adaptive, told the true ρ | 16 | 88.0% | 1.5% |
+| geometric | Historical protocol (2006) | 61 | 28.0% | — |
+
+Three things follow, and the first is the one that matters to anyone thinking of
+using this code.
+
+**The published designer fails silently on the measured landscape.** It does not
+exhaust its budget and it raises no flag: it stops on its own confidence rule,
+in the same 9–10 experiments, with a mean final confidence of **0.991** on the
+runs that ended wrong. Exact McNemar against the matched arm gives *p* < 1e-4.
+
+**The defect is the calibration, not the machinery.** Told the true ρ, the same
+designer returns to 99% at a median of 12 experiments against 10 — so the
+headline saving survives *conditional on knowing ρ*. That moves estimating ρ
+from an improvement to a **precondition**, and it is why the roadmap item
+"treat ρ as latent" is no longer optional.
+
+**The classical algorithm is not a safe fallback.** Half-removal collapses to
+0–8.5%: at ρ ≈ 0.8 no positivity threshold separates a complete recipe from one
+a factor short, whether or not the threshold is told the truth. The 2006
+protocol manages 28.5% — poor, but it claims no confidence, so it fails audibly.
+
+Under the geometric fall-off, where efficiency decays as ρ per missing factor
+instead of dropping to zero, even the matched designer reaches only 88%, at a
+median of 16 experiments and a mean of 35. Pair data constrains the one-short
+step and nothing beyond it, so which shape is right is open; both are reported
+rather than the convenient one. `python experiments/13_measured_gap.py`.
+
+##### A benchmark with no simulator in it
+
+Experiment 13 still queries a simulator — one whose gap parameter is measured,
+but a simulator. Experiment 14 removes it. Every query returns a measured Norman
+condition and nothing else; a condition the authors did not profile cannot be
+asked about, which confines the task to the 236 singles and pairs in the library
+and so to discovery rather than pool design. Observation noise is the dataset's
+disagreement with itself across two halves of the gene panel (measured 0.049).
+Target: the strongest measured combination, `CEBPA+JUN`.
+
+| Arm | Found the best | Median conditions | At a 20-condition budget |
+|---|---|---|---|
+| Exhaustive | 236/236 | 236 | — |
+| Random order | 13/40 | 84 | 74% of target |
+| Singles-first protocol | 40/40 | 108 | 59% of target |
+| **Surrogate-guided** | **40/40** | **68** | **83% of target** |
+
+The surrogate — a three-parameter fit of pair response on its constituents'
+singles, queried by upper-confidence score — beats the protocol by 20 points at
+a 20-condition budget (*p* < 1e-4, paired permutation). But read the
+singles-first row as biology before method: a measured one-short ratio of 0.77
+is exactly what makes "profile the singles, then the promising pairs" nearly
+sufficient. The simulated assay, where one factor alone yields nothing, is the
+*easier* of the two problems, not the harder one.
+`python experiments/14_norman_retrospective.py <pseudobulk.csv> <perturbations.csv>`.
 
 #### Correction 3: the design step does not scale as claimed
 
@@ -199,6 +278,48 @@ the theory. Neither method dominates: the classical search's success rate falls
 to 83% at 60 candidates, because the pool-size penalty drags its positive
 control toward the noise floor, while the Bayesian designer holds 100%
 throughout at five orders of magnitude more compute.
+
+##### Correction 3a: the regime boundary was the proposal generator, and it is gone
+
+"A fixable defect in the proposal generator" was a claim about a null result,
+made by the people whose method the null result embarrassed. Experiment 15 tests
+it. Scoring rule, posterior, oracle, recipes, seeds and *number of pools scored
+per round* are all held fixed; only the set of pools the designer may score
+changes. `structured_pools` adds the three families the original lacked —
+removal pools (the live set less a random half, quarter or eighth, which are
+exactly half-removal's queries), the complement of each ranked prefix as well as
+the prefix, and random sizes drawn log-uniformly on `[4, n]` instead of a fixed
+2–12 window.
+
+| Candidates | Published proposals | **Structured proposals** | Half-removal | Structured saves |
+|---|---|---|---|---|
+| 24 | 10 (100%) | 10 (100%) | 20 (100%) | 0.6, *p* = 0.29 |
+| 32 | 16 (100%) | **11** (100%) | 22 (97%) | 5.5, *p* = 0.0001 |
+| 40 | 19 (100%) | **11** (100%) | 24 (97%) | 8.6, *p* < 1e-4 |
+| 48 | 27 (100%) | **13** (100%) | 26 (93%) | 19.7, *p* < 1e-4 |
+| 60 | 48 (100%) | **15** (100%) | 27 (**83%**) | 34.2, *p* = 0.0006 |
+
+The growth exponent falls from **`n^1.61` to `n^0.43`**, against `n^0.36` for
+the classical search — and the structured designer ends up at a third of the
+classical cost at 60 candidates while holding 100% recovery where the classical
+search has fallen to 83%. The crossing is gone. The saving is zero at 24
+candidates, where the original window already covered a usable fraction of the
+space, and grows monotonically with list length.
+
+It is also *faster*: 89 s per run at 60 candidates against 173 s, because fewer
+rounds more than pay for larger pools. Part of that is a separate exact
+optimisation — overlaps are counted over whichever side of the pool is smaller,
+using `|S ∩ h| = |h| − |S̄ ∩ h|` — which changes no result and was verified
+against the direct computation on 400 random pools.
+
+Two honest qualifications. The structured generator was designed after seeing
+the failure it repairs, so it explains that failure rather than predicting it.
+And the compute wall of Correction 3 is untouched: exact enumeration still grows
+as `n^4` in hypotheses and remains the binding constraint past about 60
+candidates. What the experiment establishes is narrower and sufficient — **the
+regime boundary was an implementation choice, not a property of information-gain
+design**, and should not be cited as the latter.
+`python experiments/15_proposal_ablation.py`.
 
 Compute cost grows as roughly `H^1.5` in the hypothesis count. The correct
 narrow claim is that the design step is independent of **how concentrated the
@@ -335,11 +456,24 @@ corrections above is a separate, much longer run:
 
 ```bash
 ./campaign.sh       # experiments 05-10, 6,320 replicates, ~2 hours on 2 cores
+python experiments/13_measured_gap.py      # 2,200 runs, ~12 minutes
+python experiments/15_proposal_ablation.py # 184 runs, ~37 minutes
 python analysis/analyze.py      # re-analyse the per-run CSVs without re-running
 ```
 
-**No GPU, no network access, no external data.** Reference environment: Linux
-6.18, x86_64, 2 cores, 7.8 GB RAM, Python 3.13.16, numpy 2.5.3.
+Experiments 13 and 15 need no external data: experiment 13 reads the 131
+measured ratios from `results/real_data_audit_norman.csv`, which is committed.
+Experiment 14 is the exception — it queries the measured expression matrix
+itself, which is too large to commit, so rebuild it first:
+
+```bash
+python data/prepare_norman.py NormanWeissman2019_filtered.h5ad .
+python experiments/14_norman_retrospective.py pseudobulk.csv perturbations.csv
+```
+
+**No GPU, and no network access except to download that one published dataset.**
+Reference environment: Linux 6.18, x86_64, 2 cores, 7.8 GB RAM, Python 3.13.16,
+numpy 2.5.3.
 
 ## Repository layout
 
@@ -347,8 +481,10 @@ python analysis/analyze.py      # re-analyse the per-run CSVs without re-running
 yamanaka_replay/
   oracle.py        colony-formation oracle, calibrated to the 2006 figures
   inference.py     exact posterior over 10,626 hypotheses; expected info gain
-  strategies.py    historical protocol, adaptive design, ablation
+  strategies.py    historical protocol, adaptive design, ablation, proposals
   cardinality.py   recipe size as a latent variable; GeneralOracle
+  baselines.py     half-removal search, two-stage cardinality, bounds
+  norman_oracle.py gap response drawn from measurement; measured-only oracle
 experiments/
   01_main_comparison.py     the headline table
   02_prior_robustness.py    degrading the literature prior
@@ -363,6 +499,9 @@ experiments/
   10_unknown_cardinality.py   240 runs: fixed vs latent recipe size
   11_classical_baseline.py    classical threshold-group-testing comparator
   12_cardinality_baselines.py two-stage and model-free comparators
+  13_measured_gap.py        2,200 runs: the designer on the measured gap
+  14_norman_retrospective.py  discovery with no simulator in the loop
+  15_proposal_ablation.py     only the proposal set changes
 paper/           manuscript source and bibliography
 data/
   prepare_norman.py  turns a published .h5ad into a small pseudobulk table
@@ -382,16 +521,26 @@ false-positive rate under the null.
 
 ## Limitations
 
-- **The oracle is a simulator.** Calibrated to published summary figures, not to
-  raw data. It is a model of the assay, not the assay.
-- **No real perturbation data is used.** The natural next validation is to
-  repeat this against measured combinatorial perturbation datasets, where the
-  first question is whether graded synergy of the assumed shape exists at all.
+- **The oracle is a simulator**, except where stated. Experiment 13 draws its
+  gap response from measurement but still simulates; only experiment 14 queries
+  measurements alone, and it pays for that by being confined to the 236
+  conditions Norman profiled, which is discovery rather than pool design.
+- **Carrying ρ from transcriptomics to colony counts is an assumption.**
+  Experiment 13 treats a transcriptional response magnitude as monotone in assay
+  yield. That is the hinge the whole result turns on, it is not testable with
+  pair data, and it is stated rather than engineered around.
+- **The published calibration should not be used.** On the measured gap
+  structure the shipped designer recovers the recipe in 2.5% of runs at 0.991
+  mean confidence. Estimate ρ in a pilot and pass it; do not inherit 0.10.
+- **The structured proposal generator is a post-hoc repair.** It was written
+  after seeing the failure it fixes, so it explains Correction 3 rather than
+  predicting it, and it has not been tested on a landscape it was not tuned on.
 - **The historical protocol is reconstructed from the paper's description**, not
   from lab notebooks. The 61-experiment count follows the documented procedure;
   the real campaign involved further work not captured here.
-- **Exact enumeration binds past ~60 candidates**, and the proposal generator
-  degrades before that. Both need replacing for genome-scale candidate lists.
+- **Exact enumeration binds past ~60 candidates.** The proposal defect is
+  repaired (Correction 3a); the `n^4` hypothesis count is not, and still needs
+  replacing for genome-scale candidate lists.
 - **The latent-cardinality designer is bounded too**: it allows sizes 3–6, so a
   seven-factor truth would reproduce the original failure. The fix widens the
   assumption; it does not eliminate it.

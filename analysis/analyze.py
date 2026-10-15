@@ -483,6 +483,174 @@ def section_12() -> None:
             print(f"    {m:<13} true size {k:.0f}: committed wrongly in {pct(wrong)} of runs")
 
 
+# ------------------------------------------------------------------ exp 13
+
+
+def section_13() -> None:
+    cols = load("13_measured_gap.csv")
+    rule("Experiment 13 -- the designer under measured gap structure")
+    rho = cols["rho"][where(cols, method="adaptive-assumed", shape="gap")]
+    print(f"  rho drawn from {rho.size} Norman ratios: median {np.median(rho):.2f},"
+          f" IQR {np.percentile(rho, 25):.2f}-{np.percentile(rho, 75):.2f}")
+    print(f"  the published oracle assumes 0.10\n")
+
+    order = ("calibrated", "adaptive-assumed", "adaptive-matched",
+             "half-removal", "half-removal-matched", "historical")
+    names = {
+        "calibrated": "Adaptive at the assumed rho=0.10",
+        "adaptive-assumed": "Adaptive, published calibration",
+        "adaptive-matched": "Adaptive, told the true rho",
+        "half-removal": "Half-removal, assumed threshold",
+        "half-removal-matched": "Half-removal, matched threshold",
+        "historical": "Historical protocol (2006)",
+    }
+    for shape in ("gap", "geometric"):
+        print(f"  fall-off shape: {shape}")
+        print(f"    {'method':<34}{'median':>7}{'mean':>8}{'success':>20}{'silent':>9}")
+        for method in order:
+            mask = where(cols, method=method, shape=shape)
+            if not mask.any():
+                continue
+            exp, ok = cols["n_experiments"][mask], cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            silent = float(np.mean(cols["silent_failure"][mask]))
+            print(f"    {names[method]:<34}{np.median(exp):>7.0f}{exp.mean():>8.1f}"
+                  f"{pct(ok.mean()) + f' [{100 * lo:.0f}-{100 * hi:.0f}]':>20}"
+                  f"{pct(silent):>9}")
+        print()
+
+    # The headline comparison: what a reader of this repository actually gets.
+    for shape in ("gap", "geometric"):
+        a = where(cols, method="adaptive-assumed", shape=shape)
+        b = where(cols, method="adaptive-matched", shape=shape)
+        ok_a, ok_b = cols["correct"][a], cols["correct"][b]
+        both = int(np.sum((ok_a == 1) & (ok_b == 1)))
+        only_a = int(np.sum((ok_a == 1) & (ok_b == 0)))
+        only_b = int(np.sum((ok_a == 0) & (ok_b == 1)))
+        neither = int(np.sum((ok_a == 0) & (ok_b == 0)))
+        p = mcnemar_exact(both, only_a, only_b, neither)
+        print(f"  {shape}: published calibration {pct(ok_a.mean())} vs matched"
+              f" {pct(ok_b.mean())} success, exact McNemar {fmt_p(p)}")
+
+    worst = cols["final_confidence"][where(cols, method="adaptive-assumed", shape="gap")]
+    worst = worst[~np.isnan(worst)]
+    if worst.size:
+        print(f"\n  A silent failure is not a hedged one: under the published"
+              f" calibration the\n  mean final confidence on runs that ended wrong"
+              f" was {np.mean(worst):.3f}.")
+
+
+# ------------------------------------------------------------------ exp 14
+
+
+def section_14() -> None:
+    cols = load("14_norman_retrospective.csv")
+    rule("Experiment 14 -- retrospective discovery on measured data")
+    print("  Every query returns a measured Norman condition; nothing is simulated.\n")
+    print(f"    {'arm':<16}{'found best':>12}{'median tests':>14}{'at 20 tests':>14}"
+          f"{'at 60 tests':>14}")
+    traces = {}
+    for arm in ("random", "singles-first", "surrogate", "exhaustive"):
+        mask = where(cols, arm=arm)
+        if not mask.any():
+            continue
+        found = cols["found_best"][mask]
+        hits = cols["n_to_best"][mask][found == 1]
+        at20 = cols["best_at_20"][mask]
+        at60 = cols["best_at_60"][mask]
+        at20, at60 = at20[~np.isnan(at20)], at60[~np.isnan(at60)]
+        traces[arm] = (hits, at20)
+        print(f"    {arm:<16}{f'{int(found.sum())}/{found.size}':>12}"
+              f"{np.median(hits) if hits.size else float('nan'):>14.0f}"
+              f"{pct(np.median(at20)) if at20.size else '':>14}"
+              f"{pct(np.median(at60)) if at60.size else '':>14}")
+
+    if "surrogate" in traces and "singles-first" in traces:
+        a, b = traces["surrogate"][1], traces["singles-first"][1]
+        n = min(a.size, b.size)
+        diff, p = paired_permutation_test(a[:n], b[:n])
+        print(f"\n  At a 20-experiment budget the surrogate reaches"
+              f" {100 * np.median(a):.0f}% of the best measured combination"
+              f" against\n  {100 * np.median(b):.0f}% for the singles-first protocol:"
+              f" difference {100 * diff:.0f} points, {fmt_p(p)}.")
+        print("  Read this as a statement about the landscape as much as the method:"
+              "\n  the measured one-short ratio of 0.77 is exactly what makes a"
+              " singles-first\n  protocol nearly sufficient here, and what makes the"
+              " simulated assay\n  (where a single factor yields nothing) the easier"
+              " problem of the two.")
+
+
+# ------------------------------------------------------------------ exp 15
+
+
+def section_15() -> None:
+    cols = load("15_proposal_ablation.csv")
+    rule("Experiment 15 -- proposal generator ablation")
+    print("  Scoring rule, posterior, oracle, recipes and seeds all held fixed;"
+          "\n  only the set of pools the designer may score changes.\n")
+    sizes = sorted(set(cols["n_candidates"].tolist()))
+
+    classical = {}
+    if (RESULTS / "11_classical_baseline.csv").exists():
+        cl = load("11_classical_baseline.csv")
+        for n in sorted(set(cl["n_candidates"].tolist())):
+            mask = where(cl, method="half-removal", n_candidates=n)
+            if mask.any():
+                classical[n] = (
+                    float(np.median(cl["n_experiments"][mask])),
+                    float(np.mean(cl["correct"][mask])),
+                )
+
+    print(f"    {'cands':>6}│{'original':>10}{'success':>9}{'s/run':>8}"
+          f"│{'structured':>12}{'success':>9}{'s/run':>8}│{'half-removal':>14}{'success':>9}")
+    print("    " + "-" * 92)
+    series = {"original": [], "structured": []}
+    for n in sizes:
+        row = f"    {n:>6.0f}│"
+        for proposals in ("original", "structured"):
+            mask = where(cols, proposals=proposals, n_candidates=n)
+            exp, ok = cols["n_experiments"][mask], cols["correct"][mask]
+            series[proposals].append(float(np.median(exp)))
+            width = 10 if proposals == "original" else 12
+            row += (f"{np.median(exp):>{width}.0f}{pct(ok.mean()):>9}"
+                    f"{np.median(cols['elapsed_s'][mask]):>8.1f}│")
+        if n in classical:
+            med, ok = classical[n]
+            row += f"{med:>14.0f}{pct(ok):>9}"
+        print(row)
+
+    rule("Growth rates (exponent of median cost against candidate count)")
+    x = np.array(sizes, dtype=float)
+    for proposals in ("original", "structured"):
+        print(f"  adaptive, {proposals:<11} {loglog_slope(x, np.array(series[proposals])):>6.2f}")
+    if classical:
+        cx = np.array(sorted(classical), dtype=float)
+        cy = np.array([classical[n][0] for n in sorted(classical)])
+        print(f"  half-removal (exp 11)   {loglog_slope(cx, cy):>6.2f}")
+
+    print("\n  Paired comparison at each size (same recipe, same seed):")
+    for n in sizes:
+        a = cols["n_experiments"][where(cols, proposals="original", n_candidates=n)]
+        b = cols["n_experiments"][where(cols, proposals="structured", n_candidates=n)]
+        k = min(a.size, b.size)
+        # a is the original arm, b the structured one, so a positive mean
+        # difference is experiments the structured proposals did not spend.
+        diff, p = paired_permutation_test(a[:k], b[:k])
+        print(f"    {n:>3.0f} candidates: structured saves {diff:>6.1f} experiments"
+              f" on average, {fmt_p(p)}")
+
+    # Whether the regime boundary the paper reports has actually moved.
+    if classical:
+        crossed = [n for n in sizes if n in classical
+                   and series["structured"][sizes.index(n)] > classical[n][0]]
+        if crossed:
+            print(f"\n  Structured proposals still cost more than half-removal from"
+                  f" {int(min(crossed))} candidates up.")
+        else:
+            print("\n  Structured proposals are at or below half-removal's cost at"
+                  " every size tested.")
+
+
 SECTIONS = {
     "05": section_05,
     "06": section_06,
@@ -491,6 +659,9 @@ SECTIONS = {
     "09": section_09,
     "10": section_10,
     "12": section_12,
+    "13": section_13,
+    "14": section_14,
+    "15": section_15,
 }
 FILES = {
     "05": "05_scale_main.csv",
@@ -500,6 +671,9 @@ FILES = {
     "09": "09_prior_quality.csv",
     "10": "10_unknown_cardinality.csv",
     "12": "12_cardinality_baselines.csv",
+    "13": "13_measured_gap.csv",
+    "14": "14_norman_retrospective.csv",
+    "15": "15_proposal_ablation.csv",
 }
 
 

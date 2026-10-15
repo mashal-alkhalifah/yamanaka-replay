@@ -58,16 +58,38 @@ def poisson_pmf(rate: float) -> np.ndarray:
     return pmf / total if total > 0 else pmf
 
 
+#: Shape of the efficiency fall-off the *searcher* assumes, independent of what
+#: the assay actually does. ``"gap"`` is the 2006-calibrated shape: a pool one
+#: factor short performs at ``ColonyOracle.PARTIAL_3`` and anything less gives
+#: nothing. ``"geometric"`` instead lets efficiency decay as
+#: ``PARTIAL_3 ** (factors missing)``, so pools further from the recipe still
+#: carry signal. Measured combinatorial data cannot distinguish the two (it
+#: constrains only the one-short step), so experiment 13 reports both rather
+#: than picking one. Set it through :func:`set_assumed_shape`.
+ASSUMED_SHAPE = "gap"
+
+
+def set_assumed_shape(shape: str) -> None:
+    """Set the fall-off shape the searcher's likelihood assumes."""
+    global ASSUMED_SHAPE
+    if shape not in ("gap", "geometric"):
+        raise ValueError("shape must be 'gap' or 'geometric'")
+    ASSUMED_SHAPE = shape
+
+
 def expected_rate(overlap: int, pool_size: int) -> float:
     """The searcher's *assumed* colony rate for a given overlap and pool size.
 
     This mirrors :meth:`ColonyOracle.rate` but is the model the searcher
     believes. When the two diverge, the searcher is misspecified -- which is
-    precisely what ``03_misspecification.py`` probes.
+    precisely what ``03_misspecification.py`` and ``13_measured_gap.py`` probe.
     """
-    if overlap == RECIPE_SIZE:
+    missing = RECIPE_SIZE - overlap
+    if missing <= 0:
         efficiency = 1.0
-    elif overlap == RECIPE_SIZE - 1:
+    elif ASSUMED_SHAPE == "geometric":
+        efficiency = float(ColonyOracle.PARTIAL_3) ** missing
+    elif missing == 1:
         efficiency = ColonyOracle.PARTIAL_3
     else:
         efficiency = 0.0
@@ -76,9 +98,19 @@ def expected_rate(overlap: int, pool_size: int) -> float:
 
 
 def _overlaps(pool) -> np.ndarray:
-    """``|pool n h|`` for every hypothesis ``h``."""
+    """
+    ``|pool n h|`` for every hypothesis ``h``.
+
+    Counted over whichever side of the pool is smaller, using
+    ``|S n h| = |h| - |complement(S) n h|``. The two routes are exactly equal,
+    so this changes no result; it bounds the work at ``n / 2`` columns instead
+    of ``|S|``, which is what makes the large pools proposed by
+    :func:`~.strategies.structured_pools` affordable at 60 candidates.
+    """
     mask = np.zeros(N_CANDIDATES, dtype=bool)
     mask[list(pool)] = True
+    if 2 * int(mask.sum()) > N_CANDIDATES:
+        return RECIPE_SIZE - HYPOTHESIS_MASK[:, ~mask].sum(axis=1)
     return HYPOTHESIS_MASK[:, mask].sum(axis=1)
 
 

@@ -439,6 +439,253 @@ def figure6_real_data() -> None:
     save(fig, "fig6_real_data")
 
 
+# ------------------------------------------------------------------ figure 7
+
+
+def figure7_measured_gap() -> None:
+    """Success under the gap structure measured data shows, and how far that
+    structure sits from the constant the study assumed."""
+    cols = load("13_measured_gap.csv")
+    from stats import wilson_ci
+
+    order = ("historical", "half-removal", "half-removal-matched",
+             "adaptive-assumed", "adaptive-matched", "calibrated")
+    short = {
+        "historical": "Historical (2006)",
+        "half-removal": "Half-removal, assumed",
+        "half-removal-matched": "Half-removal, matched",
+        "adaptive-assumed": "Adaptive, as published",
+        "adaptive-matched": "Adaptive, told true $\\rho$",
+        "calibrated": "Adaptive at $\\rho=0.10$",
+    }
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.1))
+
+    # Horizontal: the method names are long enough that vertical ticks collide
+    # at column width, and the reader is comparing lengths either way.
+    height = 0.38
+    for offset, (shape, colour, hatch) in enumerate(
+        (("gap", BLUE, None), ("geometric", ORANGE, "//"))
+    ):
+        ys, lengths, errs = [], [], []
+        for i, method in enumerate(order):
+            mask = where(cols, method=method, shape=shape)
+            if not mask.any():
+                continue
+            ok = cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            ys.append(i + (0.5 - offset) * height)
+            lengths.append(100 * float(ok.mean()))
+            errs.append([100 * (ok.mean() - lo), 100 * (hi - ok.mean())])
+        ax.barh(ys, lengths, height, color=colour, hatch=hatch, edgecolor="white",
+                linewidth=0.5, label=f"{shape} fall-off")
+        ax.errorbar(lengths, ys, xerr=np.array(errs).T, fmt="none",
+                    ecolor=INK, elinewidth=0.7, capsize=2)
+
+    ax.set_yticks(range(len(order)))
+    ax.set_yticklabels([short[m] for m in order], fontsize=7)
+    ax.set_xlabel("recipe recovered (%)")
+    ax.set_xlim(0, 112)
+    ax.set_ylim(-0.6, len(order) - 0.4)
+    ax.legend(frameon=False, loc="lower right", fontsize=7)
+    panel(ax, "A")
+    tidy(ax)
+
+    # The silent-failure annotation is the point of the whole experiment.
+    mask = where(cols, method="adaptive-assumed", shape="gap")
+    silent = 100 * float(np.mean(cols["silent_failure"][mask]))
+    ax.annotate(f"{silent:.0f}% end confident and wrong",
+                xy=(5, 3 + 0.5 * height), xytext=(26, 1.65), fontsize=7,
+                color=VERMILLION,
+                arrowprops=dict(arrowstyle="->", color=VERMILLION, lw=0.7))
+
+    ratios = cols["rho"][where(cols, method="adaptive-assumed", shape="gap")]
+    bx.hist(ratios, bins=24, color=GREEN, edgecolor="white", linewidth=0.4)
+    bx.axvline(0.10, color=VERMILLION, lw=1.4, ls="--")
+    bx.annotate("assumed\n$\\rho = 0.10$", xy=(0.10, bx.get_ylim()[1] * 0.82),
+                xytext=(0.26, bx.get_ylim()[1] * 0.86), fontsize=7, color=VERMILLION,
+                arrowprops=dict(arrowstyle="->", color=VERMILLION, lw=0.7))
+    bx.axvline(float(np.median(ratios)), color=INK, lw=1.0)
+    bx.annotate(f"measured median {np.median(ratios):.2f}",
+                xy=(float(np.median(ratios)), bx.get_ylim()[1] * 0.45),
+                xytext=(0.18, bx.get_ylim()[1] * 0.52), fontsize=7, color=INK,
+                arrowprops=dict(arrowstyle="->", color=INK, lw=0.7))
+    bx.set_xlabel("one-short ratio $\\rho$ drawn per run")
+    bx.set_ylabel("runs")
+    panel(bx, "B")
+    tidy(bx)
+
+    fig.tight_layout()
+    save(fig, "fig7_measured_gap")
+
+
+# ------------------------------------------------------------------ figure 8
+
+
+def figure8_retrospective() -> None:
+    """Discovery curves against measured Norman conditions: no simulator."""
+    path = RESULTS / "14_norman_curves.csv"
+    if not path.exists():
+        raise FileNotFoundError(path.name)
+    cols = load("14_norman_curves.csv")
+
+    style = {
+        "random": dict(color=PURPLE, ls=(0, (3, 1, 1, 1)), label="Random order"),
+        "singles-first": dict(color=INK, ls=(0, (1, 1)), label="Singles-first protocol"),
+        "surrogate": dict(color=BLUE, ls="-", label="Surrogate-guided"),
+    }
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.0))
+
+    for arm, kw in style.items():
+        mask = where(cols, arm=arm)
+        budgets = cols["n_experiments"][mask]
+        values = cols["best_fraction_of_target"][mask]
+        grid = np.arange(1, int(budgets.max()) + 1)
+        median = np.array([np.median(values[budgets == b]) for b in grid])
+        lo = np.array([np.percentile(values[budgets == b], 25) for b in grid])
+        hi = np.array([np.percentile(values[budgets == b], 75) for b in grid])
+        ax.plot(grid, 100 * median, lw=1.4, **kw)
+        ax.fill_between(grid, 100 * lo, 100 * hi, color=kw["color"], alpha=0.13,
+                        linewidth=0)
+    ax.axhline(100, color=GRID, lw=0.8)
+    ax.set_xlabel("conditions profiled")
+    ax.set_ylabel("best found (% of strongest measured)")
+    ax.set_ylim(30, 104)
+    ax.legend(frameon=False, loc="lower right")
+    panel(ax, "A")
+    tidy(ax)
+
+    summary = load("14_norman_retrospective.csv")
+    arms = ("random", "singles-first", "surrogate")
+    data = []
+    for arm in arms:
+        mask = where(summary, arm=arm)
+        found = summary["found_best"][mask]
+        data.append(summary["n_to_best"][mask][found == 1])
+    parts = bx.boxplot(data, orientation="vertical", widths=0.55, patch_artist=True,
+                       medianprops=dict(color=INK, lw=1.2),
+                       flierprops=dict(marker=".", markersize=3, markerfacecolor=MUTED,
+                                       markeredgecolor="none"))
+    for patch, arm in zip(parts["boxes"], arms):
+        patch.set_facecolor(style[arm]["color"])
+        patch.set_alpha(0.55)
+        patch.set_edgecolor(MUTED)
+    bx.set_xticklabels(["random", "singles-first", "surrogate"], fontsize=7)
+    bx.set_ylabel("conditions profiled to reach the best")
+    # Headroom first, so the run counts sit above the whiskers rather than on
+    # them; the count matters because an arm that rarely finds the best at all
+    # is not comparable on the runs where it did.
+    top = max(float(np.max(d)) for d in data if d.size)
+    bx.set_ylim(-4, top * 1.16)
+    for i, arm in enumerate(arms, start=1):
+        mask = where(summary, arm=arm)
+        found = summary["found_best"][mask]
+        bx.text(i, top * 1.10, f"{int(found.sum())}/{found.size} runs",
+                ha="center", va="center", fontsize=6.5, color=MUTED)
+    panel(bx, "B")
+    tidy(bx)
+
+    fig.tight_layout()
+    save(fig, "fig8_retrospective")
+
+
+# ------------------------------------------------------------------ figure 9
+
+
+def _decade_free(ax, xticks, yticks) -> None:
+    """
+    Put plain integer ticks on a log axis and silence the minor ones.
+
+    Both axes here span well under a decade, so matplotlib's automatic minor
+    labels ("3 x 10^1") land on top of the explicit candidate counts. Setting
+    the ticks without clearing the minor locator leaves the collision in place.
+    """
+    from matplotlib.ticker import FixedLocator, NullFormatter, NullLocator
+
+    ax.xaxis.set_major_locator(FixedLocator(list(xticks)))
+    ax.xaxis.set_minor_locator(NullLocator())
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xticklabels([f"{int(v)}" for v in xticks])
+    if yticks is not None:
+        ax.yaxis.set_major_locator(FixedLocator(list(yticks)))
+        ax.yaxis.set_minor_locator(NullLocator())
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.set_yticklabels([f"{int(v)}" for v in yticks])
+
+
+def figure9_proposals() -> None:
+    """What changing only the proposal set does to how the designer scales."""
+    cols = load("15_proposal_ablation.csv")
+    sizes = np.array(sorted(set(cols["n_candidates"].tolist())), dtype=float)
+
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.0))
+
+    curves = {}
+    for proposals, kw in (
+        ("original", dict(color=MUTED, marker="o", ls=(0, (1, 1)),
+                          label="Adaptive, published proposals")),
+        ("structured", dict(color=BLUE, marker="o", ls="-",
+                            label="Adaptive, structured proposals")),
+    ):
+        med = np.array([
+            float(np.median(cols["n_experiments"][where(cols, proposals=proposals,
+                                                        n_candidates=n)]))
+            for n in sizes
+        ])
+        curves[proposals] = med
+        ax.plot(sizes, med, lw=1.4, ms=4, **kw)
+
+    if (RESULTS / "11_classical_baseline.csv").exists():
+        cl = load("11_classical_baseline.csv")
+        cs = np.array(sorted(set(cl["n_candidates"].tolist())), dtype=float)
+        cy = np.array([
+            float(np.median(cl["n_experiments"][where(cl, method="half-removal",
+                                                      n_candidates=n)]))
+            for n in cs
+        ])
+        ax.plot(cs, cy, lw=1.4, ms=4, **{k: v for k, v in STYLE["half-removal"].items()})
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    _decade_free(ax, sizes, (10, 15, 20, 30, 40, 50))
+    ax.set_ylim(7.6, 58)  # room for the legend below the lowest curve
+    ax.set_xlabel("candidate factors")
+    ax.set_ylabel("wet-lab experiments (median)")
+    ax.legend(frameon=False, loc="lower right", fontsize=6.5)
+    panel(ax, "A")
+    tidy(ax)
+
+    # Half-removal's curve is only comparable alongside its reliability.
+    if (RESULTS / "11_classical_baseline.csv").exists():
+        worst = float(np.mean(cl["correct"][where(cl, method="half-removal",
+                                                  n_candidates=max(cs))]))
+        ax.annotate(f"recovers the recipe in\nonly {100 * worst:.0f}% of runs here",
+                    xy=(max(cs) * 0.98, cy[-1] * 1.04), xytext=(25.5, cy[-1] * 1.42),
+                    fontsize=6.5, color=VERMILLION,
+                    arrowprops=dict(arrowstyle="->", color=VERMILLION, lw=0.7))
+
+    # Panel B: the price of the change, in design-time rather than experiments.
+    for proposals, colour, marker in (("original", MUTED, "o"), ("structured", BLUE, "o")):
+        secs = np.array([
+            float(np.median(cols["elapsed_s"][where(cols, proposals=proposals,
+                                                    n_candidates=n)]))
+            for n in sizes
+        ])
+        bx.plot(sizes, secs, color=colour, marker=marker, ms=4, lw=1.4,
+                ls="-" if proposals == "structured" else (0, (1, 1)),
+                label=f"{proposals} proposals")
+    bx.set_xscale("log")
+    bx.set_yscale("log")
+    _decade_free(bx, sizes, None)
+    bx.set_xlabel("candidate factors")
+    bx.set_ylabel("design time per run (s)")
+    bx.legend(frameon=False, loc="upper left", fontsize=6.5)
+    panel(bx, "B")
+    tidy(bx)
+
+    fig.tight_layout()
+    save(fig, "fig9_proposals")
+
+
 FIGURE_FUNCS = {
     "1": figure1_main,
     "2": figure2_scaling,
@@ -446,6 +693,9 @@ FIGURE_FUNCS = {
     "4": figure4_cardinality,
     "5": figure5_stopping,
     "6": figure6_real_data,
+    "7": figure7_measured_gap,
+    "8": figure8_retrospective,
+    "9": figure9_proposals,
 }
 
 

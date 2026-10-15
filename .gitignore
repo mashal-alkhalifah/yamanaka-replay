@@ -8,3 +8,10 @@ env/
 *.egg-info/
 .pytest_cache/
 logs/
+
+# LaTeX build artefacts; paper/main.pdf is committed, its scratch files are not
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out

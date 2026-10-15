@@ -79,12 +79,19 @@ def historical_protocol(oracle: ColonyOracle) -> tuple[set[int], int]:
 
 def _candidate_pools(rng: np.random.Generator, posterior: np.ndarray, n_random: int):
     """
-    Propose pools to score. A mix of two sources:
+    The original proposal generator, kept for comparison. A mix of two sources:
 
     * random pools of size 2-12, which split the hypothesis space coarsely and
       are informative while the posterior is still broad;
     * pools built from the currently most-probable factors, which discriminate
       between the few surviving hypotheses late in the run.
+
+    Its defect is the fixed size window. At 24 candidates a pool of 2-12 is a
+    sizeable fraction of the space and stands a fair chance of containing most
+    of the recipe; at 60 it is a sliver, and a sliver that misses the recipe
+    returns the same uninformative zero whatever else is in it. Experiment 8
+    measured the consequence: cost growing as about ``n^1.8`` where the
+    classical algorithm grows as ``n^0.4``. See :func:`structured_pools`.
     """
     pools = [
         tuple(sorted(rng.choice(N_CANDIDATES, size=int(rng.integers(2, 13)),
@@ -98,6 +105,76 @@ def _candidate_pools(rng: np.random.Generator, posterior: np.ndarray, n_random: 
     return list(dict.fromkeys(pools))  # de-duplicate, preserve order
 
 
+def structured_pools(rng: np.random.Generator, posterior: np.ndarray, n_random: int):
+    """
+    Proposals that include the queries a classical search would make.
+
+    The Bayesian designer's scoring rule was never the problem -- expected
+    information gain is exact here, over the full posterior. The problem was
+    that it only ever got to score pools that could not be very informative at
+    scale. This generator adds the three families the old one lacked, and the
+    scoring rule is left untouched, so any change in performance is
+    attributable to the proposals alone.
+
+    **Removal pools.** ``half_removal_search`` works by holding a pool that is
+    known positive and deleting half of what is left in it. Those are exactly
+    the queries that halve the live set in one step, and they were absent from
+    the old proposal set at every pool size. Here the live set is taken to be
+    the factors carrying appreciable posterior mass, and pools are formed by
+    deleting a random half, a random quarter, and a random eighth of it.
+
+    **Ranked prefixes and their complements.** Cuts of the marginal ranking at
+    a geometric ladder of depths, plus the complement of each cut. A prefix
+    asks "is the recipe inside the top k?"; its complement asks the same
+    question from the other side and is the more informative of the two
+    whenever the answer is no.
+
+    **Scale-aware random pools.** Sizes drawn log-uniformly between the recipe
+    size and the whole candidate set rather than from a fixed 2-12 window, so
+    that the coarse splits remain available when ``n`` is large.
+
+    The budget is spent in that order of priority: structure first, random
+    filler second. At the default ``n_random`` the structured families are a
+    few dozen pools, so most of the budget is still random -- the point is that
+    the informative few are now present to be found.
+    """
+    marginal = marginal_factor_probability(posterior)
+    ranked = [int(x) for x in np.argsort(-marginal)]
+    n = N_CANDIDATES
+
+    pools: list[tuple[int, ...]] = []
+
+    # -- ranked prefixes and complements, on a geometric ladder
+    depths = sorted({3, 4, 5, 6, 8, n // 8, n // 4, n // 2, 3 * n // 4})
+    for depth in depths:
+        if 1 <= depth < n:
+            prefix = ranked[:depth]
+            pools.append(tuple(sorted(prefix)))
+            pools.append(tuple(sorted(ranked[depth:])))
+    pools.append(tuple(sorted(ranked[1:5])))  # drop the leader: a direct test of it
+
+    # -- removal pools against the live set
+    live = [f for f in ranked if marginal[f] > 1e-4] or ranked
+    for fraction in (2, 4, 8):
+        take = max(1, len(live) // fraction)
+        for _ in range(3):
+            drop = set(rng.choice(live, size=min(take, len(live)), replace=False).tolist())
+            kept = tuple(sorted(f for f in live if f not in drop))
+            if kept:
+                pools.append(kept)
+
+    # -- scale-aware random pools for the rest of the budget
+    low, high = np.log(RECIPE_SIZE), np.log(n)
+    for _ in range(max(0, n_random - len(pools))):
+        size = int(round(np.exp(rng.uniform(low, high))))
+        size = min(max(size, 2), n - 1)
+        pools.append(
+            tuple(sorted(rng.choice(n, size=size, replace=False).tolist()))
+        )
+
+    return list(dict.fromkeys(pools))
+
+
 def adaptive_design(
     oracle: ColonyOracle,
     seed: int = 0,
@@ -106,6 +183,7 @@ def adaptive_design(
     prior: np.ndarray | None = None,
     n_random_pools: int = 260,
     adaptive: bool = True,
+    proposals: str = "original",
 ) -> tuple[set[int], int, float]:
     """
     Closed-loop experimental design.
@@ -120,6 +198,10 @@ def adaptive_design(
         Optional hypothesis prior (see :func:`inference.weighted_prior`).
     adaptive:
         ``False`` selects pools at random instead -- the ablation.
+    proposals:
+        Which proposal generator supplies the pools to score: ``"original"``
+        (default, so published results stay reproducible) or ``"structured"``.
+        See :func:`structured_pools`.
 
     Returns
     -------
@@ -127,9 +209,10 @@ def adaptive_design(
     """
     rng = np.random.default_rng(seed)
     posterior = uniform_prior() if prior is None else prior.copy()
+    propose = structured_pools if proposals == "structured" else _candidate_pools
 
     while oracle.n_experiments < max_experiments and posterior.max() < confidence:
-        pools = _candidate_pools(rng, posterior, n_random_pools)
+        pools = propose(rng, posterior, n_random_pools)
         if adaptive:
             pool = max(pools, key=lambda p: expected_information_gain(posterior, p))
         else:
