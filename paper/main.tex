@@ -42,49 +42,32 @@ Correspondence: \texttt{mkhalifah@kacst.gov.sa}}}
 
 \begin{abstract}
 \noindent
-Finding the small set of transcription factors that drives a cell-fate
-conversion is expensive because each query is a wet-lab assay. The 2006 screen
-that identified the four reprogramming factors consumed a documented 61
-selection experiments under a fixed leave-one-out protocol. We show that this
-class of screen is an instance of \emph{stochastic threshold group testing}: a
-pool is negative below a lower threshold of essential factors, positive at or
-above an upper threshold, and stochastic in the gap between, with the gap
-response corresponding to the partial colony formation reported for
-three-of-four pools. Placing the problem in that framework, and replaying the
-screen on an oracle calibrated to the published assay figures, yields four
-results. First, information-gain design recovers the hidden recipe in a median
-of 10 experiments against 61, is cheaper in 300 of 300 paired replicates, and
-matches the known $O(g^2 d \log n)$ order for the framework; an ablation with
-identical inference but random pools needs 44, locating the gain in experiment
-selection rather than in inference. Second, the scaling limit we initially
-reported --- a classical model-free conjunctive search overtaking the Bayesian
-designer at 48 candidates --- is a property of the proposal distribution and
-not of the method: holding the scoring rule, posterior, recipes and seeds
-fixed and changing only which pools may be scored drops the growth exponent
-from $n^{1.6}$ to $n^{0.43}$, matching the classical algorithm's $n^{0.36}$ at
-a third of its cost and at 100\% recovery where the classical search falls to
-83\%. Third, the method's only structural failure is an assumed recipe
-cardinality, which fails \emph{symmetrically and silently} --- zero success at
-0.999 reported confidence for both smaller and larger true recipes --- and is
-removed by treating cardinality as a latent variable at a cost of one
-additional experiment. Fourth, auditing the gap assumption against two measured
-combinatorial perturbation datasets (171 combinations, two cell systems) finds
-a median one-short response of 0.77 against the 0.10 the oracle assumes; re-run
-on that measured structure, the designer as calibrated here recovers the recipe
-in 2.5\% of runs and stops on its own confidence rule, at mean posterior
-confidence 0.991, in almost every failure, while the same designer informed of
-the true gap response recovers 99\%. Fifth, that precondition is removable:
-carrying the gap response as a latent variable --- the same overlap-class
-collapse with one more index --- recovers 99.3\% of recipes at 0.4 experiments
-above an oracle told its value, and beats a five-experiment calibration pilot
-on both cost and accuracy. We stress that the replay itself validates the
-search procedure, not the oracle: the oracle is calibrated to the very screen
-being replayed, so only the fourth result tests the model against data it was
-not built from. The pattern across results three to five is one finding: every
-assay parameter such a designer fixes --- recipe size, gap depth, and the
-fall-off shape beyond the gap --- is a silent failure awaiting a system that
-disagrees, and the remedy each time is to make it latent rather than to
-calibrate it better.
+Finding the few transcription factors that drive a cell-fate conversion is
+expensive: every query is a wet-lab assay, and the 2006 screen for the
+reprogramming factors consumed a documented 61 under a fixed leave-one-out
+protocol. We show that this class of screen is an instance of
+\emph{stochastic threshold group testing}, and replay it on an oracle
+calibrated to published assay figures. Five results follow.
+(1) Information-gain design recovers the hidden recipe in a median of 10
+experiments against 61, cheaper in 300 of 300 paired replicates; the same
+inference with random pools needs 44, locating the gain in experiment
+selection, not inference. (2) An apparent scaling limit, a
+classical search overtaking the designer at 48 candidates, is a property of
+the proposals rather than the method: changing only which pools may be scored
+drops the growth exponent from $n^{1.6}$ to $n^{0.43}$ at 100\%
+recovery, where the classical search falls to 83\%. (3) Fixing the recipe
+cardinality fails \emph{symmetrically and silently}, at 0.999 confidence
+whether the true recipe is smaller or larger; making size latent removes this
+for one extra experiment. (4) Audited against two measured perturbation datasets, the
+assumed gap response of 0.10 should be 0.77; re-run on that structure the
+designer as calibrated recovers 2.5\% of recipes, at mean posterior confidence
+0.991 on its failures. (5) That precondition is removable: making the gap
+response latent recovers 99.3\%, at 0.4 experiments above an oracle told its
+value, and beats a five-experiment calibration pilot on cost and accuracy. The
+replay validates the procedure, not the oracle, which was calibrated from the
+screen replayed; only (4) tests it against independent data. Results 3--5 are one finding: every assay parameter such a designer fixes is a
+silent failure awaiting a system that disagrees, and the remedy is to make it
+latent rather than calibrate it better.
 \end{abstract}
 
 \section*{Author summary}
@@ -750,7 +733,7 @@ close with the data in hand; it is the next measurement someone has to make.
 
 \section{Discussion}
 
-Four conclusions survive the controls, and they are narrower than the headline
+Five conclusions survive the controls, and they are narrower than the headline
 saving.
 
 The saving is real but unsurprising once the problem is named. Recognising the
