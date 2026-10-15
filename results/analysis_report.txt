@@ -379,3 +379,54 @@
 
   Structured proposals are at or below half-removal's cost at every size tested.
 
+==============================================================================
+  Experiment 16 -- the gap response as a latent variable
+==============================================================================
+  All arms use structured proposals, the same drawn rho and the same
+  recipes, so neither the proposal generator nor the landscape differs.
+
+  true fall-off: gap
+    method                         median   mean            success  silent |rho err|
+    Fixed at the assumed 0.10          10   11.3         2.7% [1-7]   97.3%      0.67
+    Fixed, told the true rho           12   11.5     99.3% [96-100]    0.7%      0.00
+    Pilot (5 tests), then fixed        17   16.7      95.3% [91-98]    4.7%      0.09
+    Latent rho                         12   12.0     99.3% [96-100]    0.7%      0.06
+    Latent rho and shape               12   12.2    100.0% [98-100]    0.0%      0.06
+
+  true fall-off: geometric
+    method                         median   mean            success  silent |rho err|
+    Fixed at the assumed 0.10           7    8.1         0.0% [0-2]  100.0%      0.67
+    Fixed, told the true rho           18   35.0      86.7% [80-91]    2.0%      0.00
+    Pilot (5 tests), then fixed        17   16.9         0.0% [0-2]  100.0%      0.09
+    Latent rho                         11   11.6         0.7% [0-4]   99.3%      0.19
+    Latent rho and shape               23   40.0      64.0% [56-71]   18.0%      0.06
+
+
+==============================================================================
+  Does inferring rho cost more than measuring it first?
+==============================================================================
+  gap: latent costs -4.7 experiments against the pilot (< 1e-4), and recovers
+     99.3% against 95.3% (exact McNemar 0.0703).
+  geometric: latent costs -5.3 experiments against the pilot (< 1e-4), and recovers
+     0.7% against 0.0% (exact McNemar 1.0000).
+
+==============================================================================
+  What the latent arm pays for not being told rho
+==============================================================================
+  gap: +0.4 experiments against an oracle that cannot exist in practice, 0.0006
+  geometric: -23.4 experiments against an oracle that cannot exist in practice, < 1e-4
+
+==============================================================================
+  Recovering the assay model itself
+==============================================================================
+  gap: rho recovered to a median absolute error of 0.06, against a grid spacing of
+     0.20-0.25 near the measured range; the 90% credible interval over grid cells
+     covers the true value in 86.0% of runs.
+     With the shape latent too, posterior mass on the true shape is 1.00 (median),
+     above 0.9 in 100.0% of runs.
+  geometric: rho recovered to a median absolute error of 0.19, against a grid spacing of
+     0.20-0.25 near the measured range; the 90% credible interval over grid cells
+     covers the true value in 36.0% of runs.
+     With the shape latent too, posterior mass on the true shape is 1.00 (median),
+     above 0.9 in 100.0% of runs.
+

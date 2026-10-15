@@ -25,6 +25,12 @@ score drops the growth exponent from `n^1.6` to `n^0.43` and removes the
 crossover entirely
 ([Correction 3a](#correction-3a-the-regime-boundary-was-the-proposal-generator-and-it-is-gone)).
 
+The second of those is then **repaired**: carrying ρ as a latent variable —
+the same overlap-class collapse with one more index — recovers 99.3% of
+recipes at 0.4 experiments above an oracle told ρ's true value, and beats a
+five-experiment calibration pilot on cost *and* accuracy
+([Correction 2a](#correction-2a-ρ-does-not-have-to-be-assumed-at-all)).
+
 All corrections are documented below rather than quietly dropped.
 
 A manuscript drawing these together is in [`paper/`](paper/).
@@ -213,8 +219,8 @@ runs that ended wrong. Exact McNemar against the matched arm gives *p* < 1e-4.
 **The defect is the calibration, not the machinery.** Told the true ρ, the same
 designer returns to 99% at a median of 12 experiments against 10 — so the
 headline saving survives *conditional on knowing ρ*. That moves estimating ρ
-from an improvement to a **precondition**, and it is why the roadmap item
-"treat ρ as latent" is no longer optional.
+from an improvement to a **precondition** — one that Correction 2a below then
+removes entirely.
 
 **The classical algorithm is not a safe fallback.** Half-removal collapses to
 0–8.5%: at ρ ≈ 0.8 no positivity threshold separates a complete recipe from one
@@ -226,6 +232,54 @@ instead of dropping to zero, even the matched designer reaches only 88%, at a
 median of 16 experiments and a mean of 35. Pair data constrains the one-short
 step and nothing beyond it, so which shape is right is open; both are reported
 rather than the convenient one. `python experiments/13_measured_gap.py`.
+
+##### Correction 2a: ρ does not have to be assumed at all
+
+If ρ has to be known, the obvious move is to measure it first — run a recipe
+already known to work plus each of its one-short pools, take the ratio, fix ρ,
+search. Experiment 16 tests that against the alternative: carry ρ in the
+posterior and let the search work it out. The joint state is the fixed-size
+designer with **one more index** — the colony distribution depends on a
+hypothesis and an assay model only through `(|S ∩ h|, m)`, so five overlap
+classes become 5 × |models| and the cost of choosing an experiment is still
+independent of how concentrated the posterior is. 150 paired runs per arm,
+structured proposals throughout, ρ drawn from the same measured ratios.
+
+| True fall-off | Method | Median | Recovered | Silent |
+|---|---|---|---|---|
+| gap | Fixed at the assumed 0.10 | 10 | 2.7% | 97.3% |
+| gap | Pilot (5 tests), then fixed | 17 | 95.3% | 4.7% |
+| gap | **Latent ρ** | **12** | **99.3%** | 0.7% |
+| gap | **Latent ρ and shape** | **12** | **100.0%** | 0.0% |
+| gap | *Fixed, told the true ρ* (unattainable) | 12 | 99.3% | 0.7% |
+| geometric | Fixed at the assumed 0.10 | 7 | 0.0% | 100% |
+| geometric | Pilot, then fixed | 17 | **0.0%** | 100% |
+| geometric | Latent ρ, shape still fixed | 11 | **0.7%** | 99.3% |
+| geometric | **Latent ρ and shape** | 23 | **64.0%** | 18.0% |
+| geometric | *Fixed, told ρ and shape* (unattainable) | 18 | 86.7% | 2.0% |
+
+Under the gap fall-off the answer is unambiguous: **latent ρ matches the oracle
+that cannot exist** (99.3% at median 12 either way, +0.4 experiments paired)
+and beats the pilot by 4.7 experiments *and* 4 points of accuracy. Making the
+shape latent too costs nothing measurable and reaches 100%. ρ comes back to a
+median absolute error of 0.06 against a grid spacing of 0.20–0.25, with 86%
+coverage of the 90% credible interval over grid cells — close to nominal, a
+little under, which is the price of a discrete grid.
+
+The geometric column is where it stops, and how it stops is the point. Latent ρ
+with the shape still fixed recovers 0.7% — **no better than not calibrating at
+all**, because the misspecification was never only in ρ. The pilot recovers
+*nothing*, and necessarily: a pilot measures the one-short step and is
+structurally blind to what lies beyond it. Only the arm that treats the shape
+as unknown recovers anything (64%), and it identifies the shape with posterior
+mass above 0.9 in 100% of runs — so what limits it is searching the flat
+landscape, not recognising it.
+
+So the same lesson lands three times — recipe size, gap depth, fall-off shape.
+**Every parameter this family of designers fixes is a silent failure waiting
+for a system that disagrees, and the remedy each time is to make it latent
+rather than to calibrate it better.**
+`python experiments/16_latent_gap.py`.
 
 ##### A benchmark with no simulator in it
 
@@ -458,6 +512,7 @@ corrections above is a separate, much longer run:
 ./campaign.sh       # experiments 05-10, 6,320 replicates, ~2 hours on 2 cores
 python experiments/13_measured_gap.py      # 2,200 runs, ~12 minutes
 python experiments/15_proposal_ablation.py # 184 runs, ~37 minutes
+python experiments/16_latent_gap.py        # 1,500 runs, ~23 minutes
 python analysis/analyze.py      # re-analyse the per-run CSVs without re-running
 ```
 
@@ -485,6 +540,7 @@ yamanaka_replay/
   cardinality.py   recipe size as a latent variable; GeneralOracle
   baselines.py     half-removal search, two-stage cardinality, bounds
   norman_oracle.py gap response drawn from measurement; measured-only oracle
+  latent_gap.py    rho (and the fall-off shape) as latent variables
 experiments/
   01_main_comparison.py     the headline table
   02_prior_robustness.py    degrading the literature prior
@@ -502,6 +558,7 @@ experiments/
   13_measured_gap.py        2,200 runs: the designer on the measured gap
   14_norman_retrospective.py  discovery with no simulator in the loop
   15_proposal_ablation.py     only the proposal set changes
+  16_latent_gap.py          1,500 runs: inferring rho vs calibrating it first
 paper/           manuscript source and bibliography
 data/
   prepare_norman.py  turns a published .h5ad into a small pseudobulk table
@@ -531,7 +588,12 @@ false-positive rate under the null.
   pair data, and it is stated rather than engineered around.
 - **The published calibration should not be used.** On the measured gap
   structure the shipped designer recovers the recipe in 2.5% of runs at 0.991
-  mean confidence. Estimate ρ in a pilot and pass it; do not inherit 0.10.
+  mean confidence. Use the latent-ρ designer (`latent_gap.py`); do not inherit
+  0.10, and do not bother with a pilot, which is slower and less accurate.
+- **The latent fix generalises only as far as its model class.** A designer
+  that infers ρ but fixes the fall-off *shape* recovers 0.7% when the shape is
+  wrong — the same failure one level up. The ρ grid is also bounded at 1.25,
+  so a more strongly sub-additive system would saturate it.
 - **The structured proposal generator is a post-hoc repair.** It was written
   after seeing the failure it fixes, so it explains Correction 3 rather than
   predicting it, and it has not been tested on a landscape it was not tuned on.

@@ -651,6 +651,90 @@ def section_15() -> None:
                   " every size tested.")
 
 
+# ------------------------------------------------------------------ exp 16
+
+
+def section_16() -> None:
+    cols = load("16_latent_gap.csv")
+    rule("Experiment 16 -- the gap response as a latent variable")
+    print("  All arms use structured proposals, the same drawn rho and the same")
+    print("  recipes, so neither the proposal generator nor the landscape differs.\n")
+
+    names = {
+        "fixed-assumed": "Fixed at the assumed 0.10",
+        "fixed-oracle": "Fixed, told the true rho",
+        "pilot-then-fixed": "Pilot (5 tests), then fixed",
+        "latent-rho": "Latent rho",
+        "latent-rho-shape": "Latent rho and shape",
+    }
+    order = list(names)
+    for shape in ("gap", "geometric"):
+        print(f"  true fall-off: {shape}")
+        print(f"    {'method':<30}{'median':>7}{'mean':>7}{'success':>19}"
+              f"{'silent':>8}{'|rho err|':>10}")
+        for method in order:
+            mask = where(cols, method=method, shape=shape)
+            if not mask.any():
+                continue
+            exp, ok = cols["n_experiments"][mask], cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            err = cols["rho_abs_error"][mask]
+            print(f"    {names[method]:<30}{np.median(exp):>7.0f}{exp.mean():>7.1f}"
+                  f"{pct(ok.mean()) + f' [{100 * lo:.0f}-{100 * hi:.0f}]':>19}"
+                  f"{pct(np.mean(cols['silent_failure'][mask])):>8}"
+                  f"{np.median(err):>10.2f}")
+        print()
+
+    rule("Does inferring rho cost more than measuring it first?")
+    for shape in ("gap", "geometric"):
+        a = where(cols, method="pilot-then-fixed", shape=shape)
+        b = where(cols, method="latent-rho", shape=shape)
+        cost_a, cost_b = cols["n_experiments"][a], cols["n_experiments"][b]
+        k = min(cost_a.size, cost_b.size)
+        diff, p = paired_permutation_test(cost_a[:k], cost_b[:k])
+        ok_a, ok_b = cols["correct"][a][:k], cols["correct"][b][:k]
+        mc = mcnemar_exact(
+            int(np.sum((ok_a == 1) & (ok_b == 1))),
+            int(np.sum((ok_a == 1) & (ok_b == 0))),
+            int(np.sum((ok_a == 0) & (ok_b == 1))),
+            int(np.sum((ok_a == 0) & (ok_b == 0))),
+        )
+        print(f"  {shape}: latent costs {-diff:+.1f} experiments against the pilot"
+              f" ({fmt_p(p)}), and recovers\n     {pct(ok_b.mean())} against"
+              f" {pct(ok_a.mean())} (exact McNemar {fmt_p(mc)}).")
+
+    rule("What the latent arm pays for not being told rho")
+    for shape in ("gap", "geometric"):
+        a = where(cols, method="fixed-oracle", shape=shape)
+        b = where(cols, method="latent-rho", shape=shape)
+        k = min(int(a.sum()), int(b.sum()))
+        diff, p = paired_permutation_test(
+            cols["n_experiments"][a][:k], cols["n_experiments"][b][:k]
+        )
+        print(f"  {shape}: {-diff:+.1f} experiments against an oracle that cannot"
+              f" exist in practice, {fmt_p(p)}")
+
+    rule("Recovering the assay model itself")
+    for shape in ("gap", "geometric"):
+        mask = where(cols, method="latent-rho", shape=shape)
+        cover = cols["rho_in_ci"][mask]
+        cover = cover[~np.isnan(cover)]
+        err = cols["rho_abs_error"][mask]
+        print(f"  {shape}: rho recovered to a median absolute error of"
+              f" {np.median(err):.2f}, against a grid spacing of\n     0.20-0.25"
+              f" near the measured range; the 90% credible interval over grid"
+              f" cells\n     covers the true value in {pct(np.mean(cover))}"
+              f" of runs.")
+        shaped = where(cols, method="latent-rho-shape", shape=shape)
+        p_shape = cols["p_true_shape"][shaped]
+        p_shape = p_shape[~np.isnan(p_shape)]
+        if p_shape.size:
+            print(f"     With the shape latent too, posterior mass on the true"
+                  f" shape is {np.median(p_shape):.2f}"
+                  f" (median),\n     above 0.9 in {pct(np.mean(p_shape > 0.9))}"
+                  f" of runs.")
+
+
 SECTIONS = {
     "05": section_05,
     "06": section_06,
@@ -662,6 +746,7 @@ SECTIONS = {
     "13": section_13,
     "14": section_14,
     "15": section_15,
+    "16": section_16,
 }
 FILES = {
     "05": "05_scale_main.csv",
@@ -674,6 +759,7 @@ FILES = {
     "13": "13_measured_gap.csv",
     "14": "14_norman_retrospective.csv",
     "15": "15_proposal_ablation.csv",
+    "16": "16_latent_gap.csv",
 }
 
 

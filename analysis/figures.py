@@ -686,6 +686,90 @@ def figure9_proposals() -> None:
     save(fig, "fig9_proposals")
 
 
+# ----------------------------------------------------------------- figure 10
+
+
+def figure10_latent_gap() -> None:
+    """Inferring the gap response in the loop against calibrating it first."""
+    cols = load("16_latent_gap.csv")
+    from stats import wilson_ci
+
+    order = ("fixed-assumed", "pilot-then-fixed", "latent-rho-shape",
+             "latent-rho", "fixed-oracle")
+    short = {
+        "fixed-assumed": "Fixed at assumed 0.10",
+        "pilot-then-fixed": "Pilot, then fixed",
+        "latent-rho-shape": "Latent $\\rho$ and shape",
+        "latent-rho": "Latent $\\rho$",
+        "fixed-oracle": "Fixed, told true $\\rho$",
+    }
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.2, 3.2))
+
+    height = 0.38
+    for offset, (shape, colour, hatch) in enumerate(
+        (("gap", BLUE, None), ("geometric", ORANGE, "//"))
+    ):
+        ys, lengths, errs, labels = [], [], [], []
+        for i, method in enumerate(order):
+            mask = where(cols, method=method, shape=shape)
+            if not mask.any():
+                continue
+            ok = cols["correct"][mask]
+            lo, hi = wilson_ci(int(ok.sum()), int(ok.size))
+            ys.append(i + (0.5 - offset) * height)
+            lengths.append(100 * float(ok.mean()))
+            # A Wilson bound can land a hair the wrong side of a point
+            # estimate at 0% or 100%; matplotlib rejects a negative bar.
+            errs.append([max(0.0, 100 * (ok.mean() - lo)),
+                         max(0.0, 100 * (hi - ok.mean()))])
+            labels.append(float(np.median(cols["n_experiments"][mask])))
+        ax.barh(ys, lengths, height, color=colour, hatch=hatch, edgecolor="white",
+                linewidth=0.5, label=f"{shape} fall-off")
+        ax.errorbar(lengths, ys, xerr=np.array(errs).T, fmt="none", ecolor=INK,
+                    elinewidth=0.7, capsize=2)
+        # Cost belongs beside recovery: an arm is only cheap if it is also right.
+        for y, length, med in zip(ys, lengths, labels):
+            ax.text(length + 9, y, f"{med:.0f}", va="center", fontsize=6,
+                    color=MUTED)
+
+    ax.set_yticks(range(len(order)))
+    ax.set_yticklabels([short[m] for m in order], fontsize=7)
+    ax.set_xlabel("recipe recovered (%)   ·   grey: median experiments")
+    ax.set_xlim(0, 118)
+    ax.set_ylim(-0.6, len(order) - 0.4)
+    ax.legend(frameon=False, loc="lower right", fontsize=7)
+    panel(ax, "A")
+    tidy(ax)
+
+    # Panel B: is the inferred gap response actually right?
+    jitter = np.random.default_rng(0)
+    for method, colour, marker, label in (
+        ("pilot-then-fixed", VERMILLION, "D", "Pilot estimate"),
+        ("latent-rho", BLUE, "o", "Latent posterior mean"),
+    ):
+        mask = where(cols, method=method, shape="gap")
+        true = cols["rho"][mask]
+        hat = cols["rho_hat"][mask]
+        bx.scatter(true + jitter.normal(0, 0.008, true.size), hat, s=7,
+                   color=colour, marker=marker, alpha=0.55, linewidths=0,
+                   label=label)
+    lim = (0, max(1.6, float(np.nanmax(cols["rho"])) * 1.05))
+    bx.plot(lim, lim, color=INK, lw=0.8, ls=(0, (3, 2)))
+    bx.axhline(0.10, color=MUTED, lw=0.8, ls=(0, (1, 1)))
+    bx.text(lim[1] * 0.98, 0.13, "value this study assumed", ha="right",
+            fontsize=6.5, color=MUTED)
+    bx.set_xlim(*lim)
+    bx.set_ylim(0, lim[1])
+    bx.set_xlabel("true $\\rho$ (drawn from measurement)")
+    bx.set_ylabel("estimated $\\rho$")
+    bx.legend(frameon=False, loc="upper left", fontsize=7)
+    panel(bx, "B")
+    tidy(bx)
+
+    fig.tight_layout()
+    save(fig, "fig10_latent_gap")
+
+
 FIGURE_FUNCS = {
     "1": figure1_main,
     "2": figure2_scaling,
@@ -696,6 +780,7 @@ FIGURE_FUNCS = {
     "7": figure7_measured_gap,
     "8": figure8_retrospective,
     "9": figure9_proposals,
+    "10": figure10_latent_gap,
 }
 
 

@@ -73,13 +73,18 @@ a median one-short response of 0.77 against the 0.10 the oracle assumes; re-run
 on that measured structure, the designer as calibrated here recovers the recipe
 in 2.5\% of runs and stops on its own confidence rule, at mean posterior
 confidence 0.991, in almost every failure, while the same designer informed of
-the true gap response recovers 99\%. We stress that the replay itself validates
-the search procedure, not the oracle: the oracle is calibrated to the very
-screen being replayed, so only the fourth result tests the model against data
-it was not built from. We conclude that the gap response must be estimated per
-assay rather than assumed --- it is a precondition for validity, not a
-refinement --- and that efficient experiment selection improves cost while
-degrading the detectability of model error.
+the true gap response recovers 99\%. Fifth, that precondition is removable:
+carrying the gap response as a latent variable --- the same overlap-class
+collapse with one more index --- recovers 99.3\% of recipes at 0.4 experiments
+above an oracle told its value, and beats a five-experiment calibration pilot
+on both cost and accuracy. We stress that the replay itself validates the
+search procedure, not the oracle: the oracle is calibrated to the very screen
+being replayed, so only the fourth result tests the model against data it was
+not built from. The pattern across results three to five is one finding: every
+assay parameter such a designer fixes --- recipe size, gap depth, and the
+fall-off shape beyond the gap --- is a silent failure awaiting a system that
+disagrees, and the remedy each time is to make it latent rather than to
+calibrate it better.
 \end{abstract}
 
 \section*{Author summary}
@@ -104,9 +109,12 @@ smaller. Finally, we check the model's central assumption against real
 measurements, find it wrong in the direction that causes exactly this kind of
 confident failure, and then run the method on the corrected landscape: it
 recovers the right answer in one run in forty while reporting itself almost
-certain. The lesson is that an adaptive method is only as trustworthy as the
-assay model it carries, and that this particular parameter has to be measured
-before the method is used, not assumed from a previous study.
+certain. The repair turns out to be the same one: stop fixing the number and
+let the search work it out, which restores the method to full accuracy for
+less than one extra experiment and beats calibrating it in advance. The
+general lesson is that an adaptive method is only as trustworthy as the assay
+model it carries, and that anything such a model treats as known in advance is
+a confident failure waiting for a biological system that disagrees.
 \normalsize
 
 \section{Introduction}
@@ -660,6 +668,86 @@ simulated assay, in which a single factor yields nothing at all, is the
 \emph{easier} of the two problems rather than the harder one --- a point that
 the simulation-only version of this study could not have reached.
 
+\subsection{Inferring the gap response rather than assuming it}
+\label{sec:latent-gap}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig10_latent_gap.pdf}
+  \caption{\textbf{Two ways to stop assuming $\rho$.} (A) Recipe recovered
+  over 150 paired runs per arm with Wilson intervals, under both true fall-off
+  shapes; the grey number beside each bar is that arm's median experiment
+  count, since an arm is only cheap if it is also right. The pilot's five
+  calibration experiments are counted inside its total. (B) Estimated against
+  true $\rho$ for the pilot and for the latent posterior's mean, under the gap
+  shape, with the identity line. The latent estimates flatten at 1.25 because
+  that is the top of the grid; the pilot has no ceiling but is noisier
+  throughout, and both are far from the 0.10 this study assumed.}
+  \label{fig:latentgap}
+\end{figure}
+
+Section~\ref{sec:measured-gap} leaves $\rho$ as something that must be
+obtained rather than assumed. A laboratory would obtain it by calibrating
+first: run a recipe already known to work and each of its one-short pools,
+take the ratio, then fix $\rho$ and search. The alternative is to carry $\rho$
+in the posterior and let the search inform it. Which is cheaper is not obvious
+--- the pilot spends whole experiments up front and ends in a point estimate
+with its own Poisson error, while joint inference spends part of every
+experiment's evidence on a parameter nobody asked about.
+
+The joint posterior is the fixed-size designer with one more index. The
+colony distribution depends on a hypothesis and an assay model only through
+the pair $(\lvert S \cap h\rvert, m)$, so the five overlap classes become
+$5 \times \lvert \mathcal{M} \rvert$ classes and the cost of scoring a
+proposal again does not depend on how concentrated the posterior is. We
+discretise $\rho$ on nine points spanning the assumed 0.10, the measured range
+and the sub-additive region above 1, and stop on the \emph{recipe} marginal
+with $\rho$ integrated out, since a designer that waited to pin down a
+nuisance parameter would be answering the wrong question. All arms use the
+structured proposals of Section~\ref{sec:proposals}, so the generator is not a
+confound.
+
+Under the gap fall-off the result is clean (Fig.~\ref{fig:latentgap}). Latent
+$\rho$ recovers the recipe in \textbf{99.3\%} of runs at a median of 12
+experiments --- indistinguishable from the oracle arm told the true value
+(99.3\%, median 12), at a cost of 0.4 experiments on the paired mean. Against
+the pilot it is both cheaper and more accurate: 4.7 fewer experiments
+($p < 10^{-4}$) at 99.3\% against 95.3\%. Making the shape latent as well
+costs nothing measurable and recovers 100\% of recipes. The practical
+recommendation is therefore the stronger of the two available: $\rho$ need not
+be calibrated in advance at all, and a designer that infers it is no more
+expensive than one handed the answer.
+
+The geometric fall-off is where the result stops, and the way it stops is
+informative. Latent $\rho$ with the shape still fixed recovers
+\textbf{0.7\%} --- no better than the uncalibrated designer. The pilot
+recovers \textbf{0\%}, and necessarily so: a pilot measures the one-short step
+and is structurally blind to what lies beyond it, so no number it returns can
+repair a wrong shape. Only the arm that treats the shape as unknown recovers
+anything, at 64.0\% and a median of 23 experiments, against 86.7\% for an
+oracle told both shape and $\rho$. That arm identifies the shape essentially
+perfectly --- posterior mass on the true shape above 0.9 in 100\% of runs ---
+so what limits it is not identifying the model but searching the flat
+landscape the model describes, which Section~\ref{sec:measured-gap} already
+showed to be hard even with full knowledge. It also fails silently in 18\% of
+runs, which is worse than any arm under the gap shape.
+
+The inferred $\rho$ is accurate where the shape is right and biased where it
+is not: median absolute error 0.06 against a grid spacing of 0.20--0.25 under
+the gap shape, with the 90\% credible interval over grid cells covering the
+true value in 86\% of runs --- close to nominal, and a little under it, which
+is the expected price of a discrete grid. Under a misspecified shape the same
+interval covers in 36\% of runs, so the $\rho$ posterior reports the miss
+rather than concealing it.
+
+Two things follow. The parameter this study got wrong is now inferable at no
+cost, which removes the precondition of Section~\ref{sec:measured-gap}. But
+the broader lesson of that section survives intact: the fix generalises only
+as far as the model class does, and a designer that fixes the fall-off
+\emph{shape} inherits exactly the failure that fixing $\rho$ produced.
+Measured pair data cannot distinguish the shapes, so this is not a gap we can
+close with the data in hand; it is the next measurement someone has to make.
+
 \section{Discussion}
 
 Four conclusions survive the controls, and they are narrower than the headline
@@ -704,15 +792,18 @@ untrustworthy regardless of what its posterior reports --- including the one
 distributed with this paper, which should be run with $\rho$ estimated and not
 with the value we calibrated.
 
-That conclusion also sets the next piece of work. If $\rho$ must be known and
-cannot be assumed, the principled construction is to carry it as a latent
-parameter updated alongside the recipe, exactly as recipe size already is
-(Section~\ref{sec:cardinality}). The overlap-class collapse that makes both the
-fixed-size and latent-size designers cheap extends to a discretised $\rho$ at
-the cost of one more index, so the machinery is in place; what is not yet
-established is how many experiments the joint inference costs, and whether a
-pilot that estimates $\rho$ separately is cheaper than learning it in the loop.
-We state this as the open question rather than claiming the extension works.
+Section~\ref{sec:latent-gap} then removes that precondition rather than
+leaving it as advice. Carrying $\rho$ in the posterior costs 0.4 experiments
+against an oracle told its value, recovers 99.3\% of recipes where the shipped
+calibration recovers 2.7\%, and beats a five-experiment pilot on both cost and
+accuracy --- so the operational rule simplifies to: do not fix $\rho$, infer
+it. The same construction extended to the fall-off shape recovers the shape
+with near-certainty, and the arms that fix the shape fail under it exactly as
+the arms that fixed $\rho$ failed before. The pattern is the same one three
+times over, and it is the paper's most portable finding: \emph{every
+parameter this family of designers fixes is a silent failure waiting for a
+system that disagrees, and the remedy each time is to make it latent rather
+than to calibrate it better.}
 
 \paragraph{What these experiments specify.} Read together, the results are less
 a study of one historical screen than a specification for the evaluator that any
@@ -854,6 +945,28 @@ the full posterior. Scoring a pool requires the overlap $|S \cap h|$ for every
 hypothesis; because $|S \cap h| = |h| - |\bar{S} \cap h|$, this is counted over
 whichever side of the pool is smaller, which bounds the work at $n/2$ columns
 and is exact.
+
+\subsection{Latent gap response}
+
+The joint state is a $\lvert \mathcal{H} \rvert \times \lvert \mathcal{M}
+\rvert$ array over recipes and assay models, each model a $(\text{shape},
+\rho)$ pair. $\rho$ is gridded at $\{0.02, 0.05, 0.10, 0.20, 0.35, 0.55,
+0.80, 1.00, 1.25\}$, spaced geometrically below 1 because the likelihood is
+far more sensitive to a factor-of-two error at 0.05 than at 0.8, and extending
+past 1 because 29\% of measured Norman pairs are sub-additive. The prior is
+uniform over the grid: seeding it with the measured distribution would assume
+most of the answer. Likelihood and expected information gain are computed over
+$(\lvert S \cap h \rvert, m)$ classes as in Section~\ref{sec:methods-inference}.
+Credible intervals for $\rho$ run between grid-cell boundaries rather than
+between grid points, since the estimand is continuous while the posterior is
+discrete, and an interval reported as $[0.80, 0.80]$ would exclude a true
+0.77 by construction. \textbf{Pilot baseline}: the complete reference recipe
+and each of its one-short pools, $\hat{\rho}$ being the ratio of mean
+one-short to full yield, at a cost of $d + 1 = 5$ experiments counted inside
+the arm's total. In this benchmark only the hidden recipe yields colonies, so
+the pilot must be pointed at it; a real calibration would use a previously
+solved system, so the arm pays a pilot's cost without its risk of calibrating
+on the wrong one and is an upper bound on what calibration can deliver.
 
 \subsection{Measurement-grounded oracles}
 
