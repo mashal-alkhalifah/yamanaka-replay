@@ -1,5 +1,7 @@
 # yamanaka-replay
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23436007.svg)](https://doi.org/10.5281/zenodo.23436007)
+
 **Replaying the 2006 discovery of the Yamanaka factors in silico, under its original fitness function, to ask a counterfactual question: how many wet-lab experiments would adaptive experimental design have needed?**
 
 Answer, on a simulator calibrated to the published figures: **a median of 6–10 experiments, against 61 for the historical leave-one-out protocol** — measured over 300 independent replicates with a 95% bootstrap interval of a single experiment.
@@ -609,7 +611,17 @@ false-positive rate under the null.
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff).
+This release is archived and citable:
+
+> Alkhalifah, M. S. (2026). *yamanaka-replay: factor-combination discovery as
+> stochastic threshold group testing* (v1.3.0). Zenodo.
+> https://doi.org/10.5281/zenodo.23436007
+
+The DOI above resolves to this exact release. Zenodo also mints a concept DOI
+that always points at the newest version; prefer the versioned one when citing
+a specific number, since the figures and medians move between releases.
+
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff).
 
 ## References
 

@@ -14,6 +14,8 @@ authors:
       Technology (KACST), Riyadh, Saudi Arabia
     email: mkhalifah@kacst.gov.sa
 repository-code: https://github.com/mashal-alkhalifah/yamanaka-replay
+doi: 10.5281/zenodo.23436007
+url: https://doi.org/10.5281/zenodo.23436007
 # Fill in once the preprint is posted; arXiv issues the identifier and a DOI.
 # preferred-citation:
 #   type: article
