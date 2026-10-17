@@ -1,0 +1,42 @@
+{
+  "title": "yamanaka-replay: factor-combination discovery as stochastic threshold group testing",
+  "description": "<p>An in-silico replay of the 2006 discovery of the Yamanaka reprogramming factors under its original fitness function &mdash; the colony count surviving Fbx15/G418 selection &mdash; measuring cost in wet-lab experiments rather than compute.</p><p>Adaptive Bayesian experimental design recovers the four-factor recipe in a median of 10 experiments against 61 for the historical leave-one-out protocol, cheaper in 300 of 300 paired replicates; an ablation with identical inference but random pools needs 44, placing the saving in experiment selection rather than inference.</p><p>The repository's more useful half is where the method fails. Fixing the recipe cardinality fails symmetrically and silently, at 0.999 reported confidence whether the true recipe is smaller or larger. Audited against two measured combinatorial perturbation datasets, the assumed gap response of 0.10 should be 0.77; re-run on that measured structure the designer as calibrated recovers 2.5% of recipes at a mean posterior confidence of 0.991 on its failures. An apparent scaling limit beyond 48 candidates proves to be a property of the proposal distribution and not of the method: changing only which pools may be scored drops the growth exponent from n^1.6 to n^0.43. Carrying the gap response as a latent variable restores 99.3% recovery at 0.4 experiments above an oracle told its true value, and beats a five-experiment calibration pilot on both cost and accuracy.</p><p>Across recipe size, gap depth and fall-off shape the finding is one: every assay parameter such a designer fixes is a silent failure awaiting a system that disagrees, and the remedy is to make it latent rather than to calibrate it better.</p><p>The oracle is a simulator calibrated to published figures. No biological claim is made or supported by this code.</p>",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Alkhalifah, Mashal Saleh",
+      "affiliation": "Institute of Smart Cities, King Abdulaziz City for Science and Technology (KACST), Riyadh, Saudi Arabia"
+    }
+  ],
+  "keywords": [
+    "adaptive experimental design",
+    "Bayesian optimal experimental design",
+    "threshold group testing",
+    "combinatorial search",
+    "cellular reprogramming",
+    "induced pluripotent stem cells",
+    "perturbation biology",
+    "latent cardinality",
+    "model misspecification",
+    "active learning"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/mashal-alkhalifah/yamanaka-replay",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.1016/j.cell.2006.07.024",
+      "relation": "isDerivedFrom",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.1126/science.aax4438",
+      "relation": "references",
+      "scheme": "doi"
+    }
+  ]
+}
