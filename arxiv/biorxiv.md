@@ -22,7 +22,11 @@ this paper's secondary one.
   announcement without methods.
 - **A single PDF is accepted.** LaTeX must be converted first, which it is.
 - **CC BY is among the licence options**, matching the choice already made.
-- Screening is for plagiarism, scope and article type, not peer review.
+- Screening is for plagiarism, scope and article type, not peer review, and
+  articles are explicitly not endorsed by bioRxiv.
+- **Registration is required before depositing**, with an affiliation
+  supplied, so that there is an institution to contact if misconduct concerns
+  are raised. Registration is free.
 
 ## Fields
 
@@ -36,7 +40,14 @@ this paper's secondary one.
 | Subject area | Bioinformatics (alternative: Systems Biology) |
 | Licence | CC BY 4.0 |
 | Manuscript file | `paper/main.pdf` — the full 20-page version |
+| Article category | **New Results** |
 | Supplementary | none needed; the appendix belongs to the RECOMB submission |
+
+Article category: bioRxiv asks for New Results, Confirmatory Results or
+Contradictory Results. **New Results** is correct — the paper advances a
+field rather than replicating or contradicting a specific prior study. The
+measured audit refutes an assumption of our own earlier work, not of someone
+else's, so Contradictory Results would misdescribe it.
 
 Subject area: **Bioinformatics** fits the method and the audit better than
 Systems Biology, which skews toward models of pathways and networks rather
@@ -57,10 +68,17 @@ citation section, and add it to the RECOMB submission's comments field.
 
 ## Still worth doing, and free
 
-- **ORCID** (orcid.org): an author identifier that takes two minutes, costs
-  nothing, gates nothing, and keeps "Mashal Saleh Alkhalifah" attached to the
-  right person across bioRxiv, Zenodo, RECOMB and every later paper. Worth
-  creating before the first posting rather than after.
-- **Zenodo**: archives the repository and mints a DOI for the code itself,
-  separate from the paper's. `.zenodo.json` in the repository root already
-  carries the metadata that record will use.
+## The order that costs the least
+
+Three accounts are needed and each has to be created by hand. Doing them in
+this order means creating **one** password rather than three:
+
+1. **ORCID** (orcid.org) — a new account, about two minutes. An author
+   identifier that gates nothing and keeps "Mashal Saleh Alkhalifah" attached
+   to the right person across bioRxiv, Zenodo, RECOMB and every later paper.
+2. **Zenodo** (zenodo.org) — offers *Sign in with ORCID*, so no new password.
+   Then Settings -> GitHub, and switch on `yamanaka-replay`. The switch has to
+   be on **before** a release is cut: Zenodo archives releases made after it,
+   not before. `.zenodo.json` in the repository root already carries the
+   metadata that record will use.
+3. **bioRxiv** (biorxiv.org) — registration with an affiliation, free.
