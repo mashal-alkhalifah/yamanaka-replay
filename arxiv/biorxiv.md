@@ -66,7 +66,7 @@ bioRxiv issues a DOI. Fill it into `CITATION.cff` (the `preferred-citation`
 block is already there, commented, with placeholders) and into the README's
 citation section, and add it to the RECOMB submission's comments field.
 
-## Still worth doing, and free
+
 
 ## The order that costs the least
 
