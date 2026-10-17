@@ -1,5 +1,11 @@
 # RECOMB 2027 submission
 
+**Status: registered on 17 October 2026 as Submission 23**, with the paper
+file uploaded, eleven days before the abstract deadline. The title, sole
+author, affiliation, abstract and eight keywords are lodged as recorded
+below. The paper itself may still be revised until 4 November; the title,
+author list and abstract may not change substantially.
+
 ## Deadlines
 
 | | |
