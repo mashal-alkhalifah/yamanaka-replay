@@ -37,10 +37,21 @@ the Bayesian experimental-design content and `cs.LG` the active-learning
 audience. `math.ST` would also be defensible but the paper proves nothing, so
 it would attract the wrong referees.
 
-**Endorsement**: a first submission to `q-bio.QM` from an address arXiv does
-not already recognise may require an endorsement from an existing arXiv author
-in that archive. If arXiv asks, it supplies an endorsement code and the
-request goes to a colleague who has published in q-bio.
+**Endorsement**: confirmed required, and it is the one blocker left. A first
+submission to `q-bio.QM` needs an endorsement from an arXiv author who has
+submitted **2 papers** to any `q-bio.*` category between three months and five
+years ago. Switching archive does not avoid it: `cs.LG` needs the same thing
+and asks for **3 papers**, so `q-bio.QM` is both the better fit and the lower
+bar. arXiv emails a unique endorsement code to the account address; that code
+is account-specific and is deliberately not recorded in this public
+repository.
+
+To check whether a particular person can endorse: open one of their arXiv
+papers and use the "Which of the authors of this article can endorse?" link at
+the foot of the abstract page.
+
+The submission itself is saved on arXiv and can be resumed once the
+endorsement lands; nothing has to be re-entered.
 
 ## Comments field
 
