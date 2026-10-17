@@ -1,0 +1,8 @@
+\contentsline {section}{\numberline {S1}The experimental campaign}{1}{section.1}%
+\contentsline {paragraph}{Three corrections this campaign forced on its own earlier claims.}{1}{section*.3}%
+\contentsline {section}{\numberline {S2}Model error: absent signal versus wrong signal}{2}{section.2}%
+\contentsline {section}{\numberline {S3}The stopping rule}{2}{section.3}%
+\contentsline {section}{\numberline {S4}Prior quality}{2}{section.4}%
+\contentsline {section}{\numberline {S5}Scaling, the classical baseline, and the proposal generator}{4}{section.5}%
+\contentsline {section}{\numberline {S6}The measured audit in full}{4}{section.6}%
+\contentsline {section}{\numberline {S7}Complete statistical report}{6}{section.7}%

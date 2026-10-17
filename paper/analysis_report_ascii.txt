@@ -1,0 +1,432 @@
+
+==============================================================================
+  Experiment 5 -- main comparison, 300 paired replicates
+==============================================================================
+  strategy                         median     95% CI   mean      IQR   p90   max   success (95% CI)        
+  ------------------------------------------------------------------------------------------------
+  Historical protocol (2006)           61    [61,61]   61.0    61-61    61    61   100.0% [98.7%, 100.0%]  
+  Adaptive design (info gain)          10    [10,10]   10.3     9-11    13    18   99.7% [98.1%, 99.9%]    
+  Adaptive + literature prior           6      [6,6]    6.2      6-7     7    11   99.3% [97.6%, 99.8%]    
+  Random pools + Bayes [ablation]      44    [42,46]   43.0    33-56    60    60   88.0% [83.8%, 91.2%]    
+
+  Saving vs the 2006 protocol (median 61 experiments):
+    Adaptive design (info gain)         84%   (6.1x fewer experiments)
+    Adaptive + literature prior         90%   (10.2x fewer experiments)
+    Random pools + Bayes [ablation]     28%   (1.4x fewer experiments)
+
+==============================================================================
+  Paired tests -- same hidden recipe, same noise seed, different strategy
+==============================================================================
+
+  Adaptive design (info gain) vs Random pools + Bayes [ablation]
+    is informative pool choice doing the work?
+    mean difference -32.7 experiments   permutation p = < 1e-4
+    cheaper in 298/300 runs, tied in 1
+    accuracy: adaptive only 36, random only 1   McNemar p = < 1e-4
+
+  Adaptive + literature prior vs Adaptive design (info gain)
+    does the literature prior add anything?
+    mean difference -4.1 experiments   permutation p = < 1e-4
+    cheaper in 294/300 runs, tied in 3
+    accuracy: informed only 1, adaptive only 2   McNemar p = 1.0000
+
+  Adaptive design (info gain) vs Historical protocol (2006)
+    vs the historical protocol
+    mean difference -50.7 experiments   permutation p = < 1e-4
+    cheaper in 300/300 runs, tied in 0
+    accuracy: adaptive only 0, historical only 1   McNemar p = 1.0000
+
+==============================================================================
+  Tail behaviour -- the number a lab would actually plan against
+==============================================================================
+  Adaptive design (info gain)     worst run  18   P(>=61, i.e. no better than 2006) = 0.0%   failures 1
+      failing runs used 8 experiments (median) vs 10 for successes
+  Adaptive + literature prior     worst run  11   P(>=61, i.e. no better than 2006) = 0.0%   failures 2
+      failing runs used 6 experiments (median) vs 6 for successes
+  Random pools + Bayes [ablation] worst run  60   P(>=61, i.e. no better than 2006) = 0.0%   failures 36
+      failing runs used 60 experiments (median) vs 42 for successes
+
+==============================================================================
+  Is failure detectable from the inside?
+==============================================================================
+  Adaptive design (info gain)     mean reported confidence: 0.995 when right, 0.955 when wrong
+  Adaptive + literature prior     mean reported confidence: 0.996 when right, 0.968 when wrong
+  Random pools + Bayes [ablation] mean reported confidence: 0.956 when right, 0.423 when wrong
+
+==============================================================================
+  Experiment 6 -- how much graded synergy does the method need?
+==============================================================================
+  three-of-four efficiency, and what the searcher believes about it
+
+   partial |  matched: median   success |  misspec: median   success
+  ------------------------------------------------------------------------
+     0.000 |               22    100.0% |               35     52.0% |
+     0.005 |               18    100.0% |               23     64.0% |
+     0.010 |               19    100.0% |               18     70.0% |
+     0.020 |               14    100.0% |               15     88.0% |
+     0.030 |               13    100.0% |               13     86.0% |
+     0.050 |               12    100.0% |               12     94.0% |
+     0.075 |               11     98.0% |               10    100.0% |
+     0.100 |               10     98.0% |               10     98.0% |
+     0.150 |               10     98.0% |               10    100.0% |
+     0.250 |               10    100.0% |               10    100.0% |
+     0.400 |               10    100.0% |               12     42.0% |
+
+  Expected colonies from a three-of-four pool, for scale:
+    partial 0.10 -> ~4 colonies (the calibrated value, i.e. the 2006 assay)
+    partial 0.02 -> ~1 colony     partial 0.005 -> ~0.2 colonies
+
+==============================================================================
+  Where the method breaks, and why
+==============================================================================
+  matched
+    lowest success anywhere in the sweep: 98.0%
+    no 50% crossing inside the tested range
+    no 90% crossing inside the tested range
+  misspecified
+    lowest success anywhere in the sweep: 42.0%
+    no 50% crossing inside the tested range
+    no 90% crossing inside the tested range
+
+==============================================================================
+  The real axis is not synergy strength -- it is calibration error
+==============================================================================
+  The misspecified searcher always assumes partial = 0.10. Success as a
+  function of how wrong that assumption is:
+
+   true/assumed | true partial |  success |  median |  reported confidence when wrong
+  ------------------------------------------------------------------------------------
+             0x |        0.000 |    52.0% |      35 |                           0.833
+          0.05x |        0.005 |    64.0% |      23 |                           0.935
+          0.10x |        0.010 |    70.0% |      18 |                           0.972
+          0.20x |        0.020 |    88.0% |      15 |                           0.971
+          0.30x |        0.030 |    86.0% |      13 |                           0.976
+          0.50x |        0.050 |    94.0% |      12 |                           0.985
+          0.75x |        0.075 |   100.0% |      10 |                              --
+          1.00x |        0.100 |    98.0% |      10 |                           0.955
+          1.50x |        0.150 |   100.0% |      10 |                              --
+          2.50x |        0.250 |   100.0% |      10 |                              --
+          4.00x |        0.400 |    42.0% |      12 |                           0.989
+
+==============================================================================
+  How much of the failure is a modelling error rather than lost information?
+==============================================================================
+  Paired by run: same hidden recipe and noise, differing only in whether
+  the searcher's likelihood knows the true partial efficiency.
+
+    partial  0.005:  matched 100.0%   misspecified  64.0%   gap   +36 pts   McNemar p = < 1e-4  <-- calibration matters here
+    partial  0.010:  matched 100.0%   misspecified  70.0%   gap   +30 pts   McNemar p = < 1e-4  <-- calibration matters here
+    partial  0.020:  matched 100.0%   misspecified  88.0%   gap   +12 pts   McNemar p = 0.0313  <-- calibration matters here
+    partial  0.030:  matched 100.0%   misspecified  86.0%   gap   +14 pts   McNemar p = 0.0156  <-- calibration matters here
+    partial  0.050:  matched 100.0%   misspecified  94.0%   gap    +6 pts   McNemar p = 0.2500
+    partial  0.075:  matched  98.0%   misspecified 100.0%   gap    -2 pts   McNemar p = 1.0000
+    partial  0.100:  matched  98.0%   misspecified  98.0%   gap    +0 pts   McNemar p = 1.0000
+    partial  0.150:  matched  98.0%   misspecified 100.0%   gap    -2 pts   McNemar p = 1.0000
+    partial  0.250:  matched 100.0%   misspecified 100.0%   gap    +0 pts   McNemar p = 1.0000
+    partial  0.400:  matched 100.0%   misspecified  42.0%   gap   +58 pts   McNemar p = < 1e-4  <-- calibration matters here
+
+==============================================================================
+  Experiment 7 -- the price of certainty, and is the posterior honest?
+==============================================================================
+
+  Adaptive design (info gain)
+    target |  median    mean    p90 |   success           95% CI |  mean reported     gap
+  --------------------------------------------------------------------------------------
+    0.5000 |      10     9.9     12 |     90.8%   [84.3%, 94.8%] |          0.924  +0.015
+    0.7500 |      10    10.0     12 |     94.2%   [88.4%, 97.1%] |          0.952  +0.010
+    0.9000 |      10    10.2     13 |     95.8%   [90.6%, 98.2%] |          0.983  +0.025
+    0.9500 |      10    10.4     13 |     99.2%   [95.4%, 99.9%] |          0.995  +0.003
+    0.9900 |      10    10.6     13 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+    0.9990 |      10    10.6     13 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+    0.9999 |      10    10.7     13 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+
+  Adaptive + literature prior
+    target |  median    mean    p90 |   success           95% CI |  mean reported     gap
+  --------------------------------------------------------------------------------------
+    0.5000 |       6     6.0      7 |     95.8%   [90.6%, 98.2%] |          0.956  -0.002
+    0.7500 |       6     6.1      7 |     98.3%   [94.1%, 99.5%] |          0.986  +0.003
+    0.9000 |       6     6.1      7 |     99.2%   [95.4%, 99.9%] |          0.991  -0.000
+    0.9500 |       6     6.2      7 |    100.0%  [96.9%, 100.0%] |          0.996  -0.004
+    0.9900 |       6     6.4      7 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+    0.9990 |       6     6.4      8 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+    0.9999 |       6     6.4      8 |    100.0%  [96.9%, 100.0%] |          1.000  -0.000
+
+==============================================================================
+  Calibration verdict
+==============================================================================
+  Adaptive design (info gain): no threshold where the stated confidence exceeds the observed success rate
+  Adaptive + literature prior: no threshold where the stated confidence exceeds the observed success rate
+
+==============================================================================
+  Marginal cost of certainty
+==============================================================================
+  Adaptive design (info gain): 0.5000->0.7500: +0   0.7500->0.9000: +0   0.9000->0.9500: +0   0.9500->0.9900: +0   0.9900->0.9990: +0   0.9990->0.9999: +0
+  Adaptive + literature prior: 0.5000->0.7500: +0   0.7500->0.9000: +0   0.9000->0.9500: +0   0.9500->0.9900: +0   0.9900->0.9990: +0   0.9990->0.9999: +0
+
+==============================================================================
+  Experiment 8 -- scaling in candidate-list size
+==============================================================================
+   cands   hypotheses |  historical |  adaptive  success  sec/run |  informed  success
+  --------------------------------------------------------------------------------------
+      24       10,626 |          61 |        10   100.0%      0.3 |         6   100.0%
+      32       35,960 |          77 |        16   100.0%      2.1 |         6   100.0%
+      40       91,390 |          93 |        19   100.0%      5.5 |         6   100.0%
+      48      194,580 |         109 |        27   100.0%     17.4 |         6   100.0%
+      60      487,635 |         133 |        58   100.0%    159.2 |         6   100.0%
+
+==============================================================================
+  Growth rates
+==============================================================================
+  Historical protocol (2006)       12.93 experiments per bit of hypothesis-space entropy
+  Adaptive design (info gain)       7.63 experiments per bit of hypothesis-space entropy
+  Adaptive + literature prior       0.07 experiments per bit of hypothesis-space entropy
+
+  wet-lab cost vs candidates : exponent 1.77   (1.00 would be linear, as the historical protocol is)
+  compute cost vs hypotheses : exponent 1.56   (design-step cost, seconds per run)
+
+  Saving against the historical protocol at each size:
+     24 candidates: adaptive  84%   informed  90%
+     32 candidates: adaptive  79%   informed  92%
+     40 candidates: adaptive  80%   informed  94%
+     48 candidates: adaptive  75%   informed  94%
+     60 candidates: adaptive  57%   informed  95%
+
+==============================================================================
+  Experiment 9 -- when does a literature prior stop helping and start hurting?
+==============================================================================
+
+  Prior up-weights 6 factors (2 of them decoys when coverage is complete)
+   strength | drop 0:  med  succ | drop 1:  med  succ | drop 2:  med  succ | drop 3:  med  succ | drop 4:  med  succ
+  -------------------------------------------------------------------------------------------------
+        1.5 |          7 100.0% |          8 100.0% |          9 100.0% |         10 100.0% |         11 100.0%
+        3.0 |          6 100.0% |          7 100.0% |         10 100.0% |         11 100.0% |         12 100.0%
+       10.0 |          5 100.0% |          7 100.0% |          9 96.7% |         12 100.0% |         14 93.3%
+      100.0 |          4 100.0% |          7 100.0% |         11 96.7% |         15 96.7% |         18 90.0%
+
+  Prior up-weights 8 factors (4 of them decoys when coverage is complete)
+   strength | drop 0:  med  succ | drop 1:  med  succ | drop 2:  med  succ | drop 3:  med  succ | drop 4:  med  succ
+  -------------------------------------------------------------------------------------------------
+        1.5 |          7 100.0% |          9 100.0% |          9 100.0% |         11 93.3% |         12 100.0%
+        3.0 |          6 100.0% |          8 100.0% |         10 100.0% |         12 100.0% |         13 100.0%
+       10.0 |          5 100.0% |          8 100.0% |         10 100.0% |         13 96.7% |         15 100.0%
+      100.0 |          5 96.7% |          9 100.0% |         12 100.0% |         17 90.0% |         21 86.7%
+
+  Prior up-weights 12 factors (8 of them decoys when coverage is complete)
+   strength | drop 0:  med  succ | drop 1:  med  succ | drop 2:  med  succ | drop 3:  med  succ | drop 4:  med  succ
+  -------------------------------------------------------------------------------------------------
+        1.5 |          8 100.0% |         10 100.0% |         10 100.0% |         11 100.0% |         12 100.0%
+        3.0 |          8 100.0% |          9 100.0% |         11 96.7% |         12 100.0% |         14 100.0%
+       10.0 |          7 96.7% |          9 100.0% |         13 100.0% |         15 100.0% |         17 96.7%
+      100.0 |          7 100.0% |         11 96.7% |         16 90.0% |         20 96.7% |         24 96.7%
+
+==============================================================================
+  The trade: a strong prior is cheap when right and dangerous when wrong
+==============================================================================
+   strength |  median when complete |  median when 1 missing |  success when 1 missing
+  ----------------------------------------------------------------------------------
+        1.5 |                     8 |                      9 | 100.0% [95.9%, 100.0%]
+        3.0 |                     6 |                      8 | 100.0% [95.9%, 100.0%]
+       10.0 |                     6 |                      8 | 100.0% [95.9%, 100.0%]
+      100.0 |                     5 |                      9 | 98.9% [94.0%, 99.8%]
+
+  Failure rate by coverage, pooled over breadth, per strength:
+    strength    1.5   drop 0: 0.0%   drop 1: 0.0%   drop 2: 0.0%   drop 3: 2.2%   drop 4: 0.0%
+    strength    3.0   drop 0: 0.0%   drop 1: 0.0%   drop 2: 1.1%   drop 3: 0.0%   drop 4: 0.0%
+    strength   10.0   drop 0: 1.1%   drop 1: 0.0%   drop 2: 1.1%   drop 3: 1.1%   drop 4: 3.3%
+    strength  100.0   drop 0: 1.1%   drop 1: 1.1%   drop 2: 4.4%   drop 3: 5.6%   drop 4: 8.9%
+
+==============================================================================
+  Experiment 10 -- recipe size as a latent variable instead of an assumption
+==============================================================================
+   true size |  designer |  median    mean |  exact recipe            95% CI |  right size |  P(true size)
+  ------------------------------------------------------------------------------------------------
+           3 |   fixed-4 |       9     8.7 |          0.0%      [0.0%, 8.8%] |        0.0% |         0.000
+           3 |    latent |       9     8.9 |        100.0%   [91.2%, 100.0%] |      100.0% |         0.999
+           4 |   fixed-4 |      10    10.5 |        100.0%   [91.2%, 100.0%] |      100.0% |         1.000
+           4 |    latent |      12    11.4 |        100.0%   [91.2%, 100.0%] |      100.0% |         0.997
+           5 |   fixed-4 |      18    18.9 |          0.0%      [0.0%, 8.8%] |        0.0% |         0.000
+           5 |    latent |      16    16.3 |        100.0%   [91.2%, 100.0%] |      100.0% |         0.995
+
+==============================================================================
+  Does the fix cost anything on the case it did not need to generalise for?
+==============================================================================
+  Four-factor truth, the case the fixed designer was built for:
+    fixed-4  median 10, success 100.0%
+    latent   median 12, success 100.0%
+    premium  +0.9 experiments   permutation p = 0.0036
+
+==============================================================================
+  Is the failure still silent?
+==============================================================================
+  The danger was never the failure itself but that the posterior stayed
+  confident through it. Reported confidence, split by whether the answer
+  was right:
+
+    size 3, fixed-4  confidence -- when right, 0.999 when wrong
+    size 3, latent   confidence 0.999 when right, -- when wrong
+    size 4, fixed-4  confidence 0.997 when right, -- when wrong
+    size 4, latent   confidence 0.996 when right, -- when wrong
+    size 5, fixed-4  confidence -- when right, 0.987 when wrong
+    size 5, latent   confidence 0.993 when right, -- when wrong
+
+==============================================================================
+  Experiment 12 -- is joint inference over recipe size worth its machinery?
+==============================================================================
+  method                   true size 3           true size 4           true size 5
+  --------------------------------------------------------------------------------
+  fixed-4                 9 exp . 0.0%       10 exp . 100.0%         18 exp . 0.0%
+  two-stage-6            9 exp . 80.0%        10 exp . 46.7%        17 exp . 13.3%
+  two-stage-12         12 exp . 100.0%        12 exp . 93.3%        17 exp . 60.0%
+  latent                9 exp . 100.0%       11 exp . 100.0%       17 exp . 100.0%
+  half-removal         17 exp . 100.0%       20 exp . 100.0%       22 exp . 100.0%
+
+==============================================================================
+  What each comparator costs on the four-factor case it was built for
+==============================================================================
+  two-stage-6      -0.5 experiments vs fixed-4   p = 0.5184
+  two-stage-12     +1.7 experiments vs fixed-4   p = 0.0053
+  latent           +0.5 experiments vs fixed-4   p = 0.5252
+  half-removal     +9.7 experiments vs fixed-4   p = < 1e-4
+
+==============================================================================
+  Where the two-stage baseline loses
+==============================================================================
+  It commits to a size estimated from a fixed first-stage budget, and
+  cannot revisit that decision. Share of runs whose committed size was
+  wrong:
+
+    two-stage-6   true size 3: committed wrongly in 20.0% of runs
+    two-stage-6   true size 4: committed wrongly in 53.3% of runs
+    two-stage-6   true size 5: committed wrongly in 86.7% of runs
+    two-stage-12  true size 3: committed wrongly in 0.0% of runs
+    two-stage-12  true size 4: committed wrongly in 6.7% of runs
+    two-stage-12  true size 5: committed wrongly in 40.0% of runs
+
+==============================================================================
+  Experiment 13 -- the designer under measured gap structure
+==============================================================================
+  rho drawn from 200 Norman ratios: median 0.77, IQR 0.62-1.02
+  the published oracle assumes 0.10
+
+  fall-off shape: gap
+    method                             median    mean             success   silent
+    Adaptive at the assumed rho=0.10       10    10.4      99.0% [96-100]     0.0%
+    Adaptive, published calibration         9    10.4          2.5% [1-6]    97.5%
+    Adaptive, told the true rho            12    11.8      99.0% [96-100]     1.0%
+    Half-removal, assumed threshold        16    15.6          0.0% [0-2]     0.0%
+    Half-removal, matched threshold        20    17.5         8.5% [5-13]     0.0%
+    Historical protocol (2006)             61    61.0       28.5% [23-35]     0.0%
+
+  fall-off shape: geometric
+    method                             median    mean             success   silent
+    Adaptive, published calibration         5     6.1          0.0% [0-2]   100.0%
+    Adaptive, told the true rho            16    35.4       88.0% [83-92]     1.5%
+    Half-removal, assumed threshold         7    10.7          0.0% [0-2]     0.0%
+    Half-removal, matched threshold        16    17.4         7.0% [4-11]     0.0%
+    Historical protocol (2006)             61    61.0       28.0% [22-35]     0.0%
+
+  gap: published calibration 2.5% vs matched 99.0% success, exact McNemar < 1e-4
+  geometric: published calibration 0.0% vs matched 88.0% success, exact McNemar < 1e-4
+
+  A silent failure is not a hedged one: under the published calibration the
+  mean final confidence on runs that ended wrong was 0.991.
+
+==============================================================================
+  Experiment 14 -- retrospective discovery on measured data
+==============================================================================
+  Every query returns a measured Norman condition; nothing is simulated.
+
+    arm               found best  median tests   at 20 tests   at 60 tests
+    random                 13/40            84         74.4%         86.1%
+    singles-first          40/40           108         59.3%         86.1%
+    surrogate              40/40            68         83.3%         92.1%
+    exhaustive               1/1           236                            
+
+  At a 20-experiment budget the surrogate reaches 83% of the best measured combination against
+  59% for the singles-first protocol: difference 20 points, < 1e-4.
+  Read this as a statement about the landscape as much as the method:
+  the measured one-short ratio of 0.77 is exactly what makes a singles-first
+  protocol nearly sufficient here, and what makes the simulated assay
+  (where a single factor yields nothing) the easier problem of the two.
+
+==============================================================================
+  Experiment 15 -- proposal generator ablation
+==============================================================================
+  Scoring rule, posterior, oracle, recipes and seeds all held fixed;
+  only the set of pools the designer may score changes.
+
+     cands|  original  success   s/run|  structured  success   s/run|  half-removal  success
+    --------------------------------------------------------------------------------------------
+        24|        10   100.0%     0.4|          10   100.0%     0.3|            20   100.0%
+        32|        16   100.0%     2.2|          11   100.0%     1.5|            22    96.7%
+        40|        19   100.0%     6.2|          11   100.0%     4.6|            24    96.7%
+        48|        27   100.0%    20.8|          13   100.0%    13.4|            26    93.3%
+        60|        48   100.0%   172.9|          15   100.0%    88.8|            27    83.3%
+
+==============================================================================
+  Growth rates (exponent of median cost against candidate count)
+==============================================================================
+  adaptive, original      1.61
+  adaptive, structured    0.43
+  half-removal (exp 11)     0.36
+
+  Paired comparison at each size (same recipe, same seed):
+     24 candidates: structured saves    0.6 experiments on average, 0.2920
+     32 candidates: structured saves    5.5 experiments on average, 0.0001
+     40 candidates: structured saves    8.6 experiments on average, < 1e-4
+     48 candidates: structured saves   19.7 experiments on average, < 1e-4
+     60 candidates: structured saves   34.2 experiments on average, 0.0006
+
+  Structured proposals are at or below half-removal's cost at every size tested.
+
+==============================================================================
+  Experiment 16 -- the gap response as a latent variable
+==============================================================================
+  All arms use structured proposals, the same drawn rho and the same
+  recipes, so neither the proposal generator nor the landscape differs.
+
+  true fall-off: gap
+    method                         median   mean            success  silent |rho err|
+    Fixed at the assumed 0.10          10   11.3         2.7% [1-7]   97.3%      0.67
+    Fixed, told the true rho           12   11.5     99.3% [96-100]    0.7%      0.00
+    Pilot (5 tests), then fixed        17   16.7      95.3% [91-98]    4.7%      0.09
+    Latent rho                         12   12.0     99.3% [96-100]    0.7%      0.06
+    Latent rho and shape               12   12.2    100.0% [98-100]    0.0%      0.06
+
+  true fall-off: geometric
+    method                         median   mean            success  silent |rho err|
+    Fixed at the assumed 0.10           7    8.1         0.0% [0-2]  100.0%      0.67
+    Fixed, told the true rho           18   35.0      86.7% [80-91]    2.0%      0.00
+    Pilot (5 tests), then fixed        17   16.9         0.0% [0-2]  100.0%      0.09
+    Latent rho                         11   11.6         0.7% [0-4]   99.3%      0.19
+    Latent rho and shape               23   40.0      64.0% [56-71]   18.0%      0.06
+
+
+==============================================================================
+  Does inferring rho cost more than measuring it first?
+==============================================================================
+  gap: latent costs -4.7 experiments against the pilot (< 1e-4), and recovers
+     99.3% against 95.3% (exact McNemar 0.0703).
+  geometric: latent costs -5.3 experiments against the pilot (< 1e-4), and recovers
+     0.7% against 0.0% (exact McNemar 1.0000).
+
+==============================================================================
+  What the latent arm pays for not being told rho
+==============================================================================
+  gap: +0.4 experiments against an oracle that cannot exist in practice, 0.0006
+  geometric: -23.4 experiments against an oracle that cannot exist in practice, < 1e-4
+
+==============================================================================
+  Recovering the assay model itself
+==============================================================================
+  gap: rho recovered to a median absolute error of 0.06, against a grid spacing of
+     0.20-0.25 near the measured range; the 90% credible interval over grid cells
+     covers the true value in 86.0% of runs.
+     With the shape latent too, posterior mass on the true shape is 1.00 (median),
+     above 0.9 in 100.0% of runs.
+  geometric: rho recovered to a median absolute error of 0.19, against a grid spacing of
+     0.20-0.25 near the measured range; the 90% credible interval over grid cells
+     covers the true value in 36.0% of runs.
+     With the shape latent too, posterior mass on the true shape is 1.00 (median),
+     above 0.9 in 100.0% of runs.
+

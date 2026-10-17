@@ -49,7 +49,17 @@ supporting campaigns in the appendix.
   only permitted but ahead of schedule.
 - **Single-blind review**, so no anonymisation is needed.
 
-## What still has to be built
+## Built
+
+- `paper/recomb10.tex` -> `recomb10.pdf`: **7 pages of body** plus a separate
+  title page and 2 pages of references, against a 10-page limit that excludes
+  both. Zero overfull boxes, no unresolved references. Four figures in the
+  main text: the main comparison, cardinality, the measured gap, and the
+  latent gap, plus the retrospective benchmark that the headroom allowed back
+  in.
+- `paper/appendix.tex` -> `appendix.pdf`: 10 pages, submitted as the single
+  supplementary PDF. Carries the campaign table, the five displaced figures
+  with full captions, and the complete statistical report verbatim.
 
 The manuscript is 20 pages; RECOMB allows 10 (Letter, 10pt minimum, 1-inch
 margins, bibliography excluded, separate title page allowed) plus an appendix
