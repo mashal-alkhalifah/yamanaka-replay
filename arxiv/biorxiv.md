@@ -1,5 +1,26 @@
 # bioRxiv submission
 
+**Status: started on 18 October 2026 as BIORXIV/2026/759894, Version 1.**
+Account registered and verified; the submission form is filled and
+`paper/main.pdf` is uploaded and through PDF conversion. Seven of the eight
+sections are complete. What remains is the author's own: on *Abstract and
+Author Approvals*, tick the author-approval box, tick "This manuscript has
+not been published by a journal", choose "The authors have declared no
+competing interest", press Save / Continue, then review *Submission
+Proofing* and press the final submit.
+
+Recorded as entered: article category New Results; subject area
+Bioinformatics; external data
+`https://github.com/mashal-alkhalifah/yamanaka-replay`; sole corresponding
+author Mashal Saleh Alkhalifah, Institute of Smart Cities, King Abdulaziz
+City for Science and Technology (KACST), Riyadh, Saudi Arabia; no funding to
+disclose; CC BY. The ORCiD field was left empty because the iD was not to
+hand; it can be added before the final submit or at revision.
+
+The expertise-terms page of the profile would not save (the server returns
+`not 1-4,9`). It is a reviewer-preference page, not a prerequisite for
+depositing, and can be set later from the Personal Info Area.
+
 The preprint route that needs no endorser. arXiv requires an endorsement from
 an author with prior submissions in the archive, which this account does not
 have and cannot quickly obtain; bioRxiv has no such system. RECOMB's call
