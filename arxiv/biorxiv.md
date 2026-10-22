@@ -1,15 +1,40 @@
 # bioRxiv submission
 
-**Status: started on 18 October 2026 as BIORXIV/2026/759894, Version 1.**
-Account registered and verified; the submission form is filled and
-`paper/main.pdf` is uploaded and through PDF conversion. Seven of the eight
-sections are complete. What remains is the author's own: on *Abstract and
-Author Approvals*, tick the author-approval box, tick "This manuscript has
-not been published by a journal", choose "The authors have declared no
-competing interest", press Save / Continue, then review *Submission
-Proofing* and press the final submit.
+**Status: DECLINED at screening.** Submitted 18 October 2026 as
+BIORXIV/2026/759894 Version 1, approved by the author, and rejected by the
+bioRxiv screening team on 19 October 2026. The decision letter reads in
+full:
 
-Recorded as entered: article category New Results; subject area
+> We regret to inform you that your manuscript cannot be considered for
+> bioRxiv because we cannot verify aspects of the manuscript and feel it
+> would be better disseminated after peer review. Please be assured that
+> this conclusion simply refers to the manuscript's appropriateness for
+> bioRxiv and is not a judgment on the merits of the work described.
+
+That is bioRxiv's standard wording for work it judges out of scope rather
+than deficient. The likely reading: the paper carries a biology-facing
+title and audits two published perturbation datasets, but reports no new
+biological measurement of its own — everything is simulation and
+re-analysis. bioRxiv screens such work out. The ground does not point to
+anything repairable in the manuscript, so re-submitting the same paper
+there is not worth the attempt; a route that accepts computational
+methods work is.
+
+**The judgement recorded below — that bioRxiv was the better-targeted
+venue for this paper — was wrong, and the reason it was wrong is worth
+keeping.** The audit's subject matter is biological; its contribution is
+not. The paper is a Bayesian experimental-design result that happens to
+take a reprogramming screen as its worked example, and the venue should
+have been chosen on the contribution, not the example. arXiv `q-bio.QM`
+with `stat.ME` and `cs.LG` cross-lists was the right first choice all
+along, and the endorsement wall was a reason to find an endorser, not a
+reason to pick a different archive.
+
+Priority is not at risk: Zenodo DOI `10.5281/zenodo.23436007` was minted
+on 17 October and is the citable record of the work.
+
+Recorded as entered on the declined submission: article category New
+Results; subject area
 Bioinformatics; external data
 `https://github.com/mashal-alkhalifah/yamanaka-replay`; sole corresponding
 author Mashal Saleh Alkhalifah, Institute of Smart Cities, King Abdulaziz
@@ -20,6 +45,10 @@ hand; it can be added before the final submit or at revision.
 The expertise-terms page of the profile would not save (the server returns
 `not 1-4,9`). It is a reviewer-preference page, not a prerequisite for
 depositing, and can be set later from the Personal Info Area.
+
+## What was believed when this route was chosen
+
+Kept for the record; superseded by the decision above.
 
 The preprint route that needs no endorser. arXiv requires an endorsement from
 an author with prior submissions in the archive, which this account does not
