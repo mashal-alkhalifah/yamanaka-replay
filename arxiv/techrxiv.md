@@ -80,7 +80,7 @@ Source: https://www.preprints.org/instructions-for-authors
 | Author | Mashal Saleh Alkhalifah (sole author, corresponding) |
 | Affiliation | Institute of Smart Cities, King Abdulaziz City for Science and Technology (KACST), Riyadh, Saudi Arabia |
 | Email | mkhalifah@kacst.gov.sa |
-| ORCID | to be supplied |
+| ORCID | 0009-0007-7058-0345 |
 | Abstract | `arxiv/abstract.txt`, verbatim |
 | File | `paper/main.pdf` — the full 20-page version |
 | Licence | CC BY 4.0 |
